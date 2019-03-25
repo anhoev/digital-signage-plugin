@@ -1,0 +1,60 @@
+{
+  "_id": "5c6824941d616c3dda444c7d",
+  "extensions": [],
+  "alwaysLoad": true,
+  "title": "owner",
+  "fields": [
+    {
+      "_id": "5c6825641d616c3dda444c80",
+      "schemaType": "string",
+      "key": "owner",
+      "type": "input",
+      "fields": []
+    },
+    {
+      "_id": "5c6825641d616c3dda444c7f",
+      "schemaType": "object",
+      "key": "address",
+      "type": "object",
+      "fields": [
+        {
+          "schemaType": "string",
+          "key": "street",
+          "type": "input"
+        },
+        {
+          "schemaType": "string",
+          "key": "number",
+          "type": "input"
+        },
+        {
+          "schemaType": "string",
+          "key": "zipcode",
+          "type": "input"
+        },
+        {
+          "schemaType": "string",
+          "key": "city",
+          "type": "input"
+        }
+      ]
+    },
+    {
+      "_id": "5c68259c1d616c3dda444c8a",
+      "schemaType": "string",
+      "key": "telephone",
+      "type": "input"
+    },
+    {
+      "_id": "5c68259c1d616c3dda444c89",
+      "schemaType": "string",
+      "key": "email",
+      "type": "input"
+    }
+  ],
+  "tabs": [],
+  "id": "5c6824941d616c3dda444c7d",
+  "name": "Location",
+  "type": "Collection",
+  "__v": 0
+}

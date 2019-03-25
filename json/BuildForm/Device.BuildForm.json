@@ -1,0 +1,114 @@
+{
+  "_id": "5c9466cd9355686e4f94d19c",
+  "type": "Collection",
+  "tabs": [],
+  "name": "Device",
+  "id": "5c9466cd9355686e4f94d19c",
+  "fields": [
+    {
+      "_id": "5c9467ad9355686e4f94d1a1",
+      "schemaType": "string",
+      "key": "token",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c6823c61d616c3dda444c6d",
+      "schemaType": "string",
+      "key": "name",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c9467ad9355686e4f94d19f",
+      "schemaType": "string",
+      "key": "os",
+      "type": "input@select",
+      "optionsType": "onlyValue",
+      "options": [
+        "android",
+        "ios"
+      ],
+      "flex": "md4"
+    },
+    {
+      "_id": "5c9467ad9355686e4f94d19e",
+      "schemaType": "string",
+      "key": "os-version",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c9467ad9355686e4f94d19d",
+      "schemaType": "string",
+      "key": "model",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c682aa1c91b674ebd06cb91",
+      "schemaType": "objectId",
+      "key": "location",
+      "ref": "Location",
+      "type": "ref-select",
+      "flex": "md4",
+      "labelProp": "owner"
+    },
+    {
+      "_id": "5c6824871d616c3dda444c7a",
+      "schemaType": "array",
+      "key": "connectionHistory",
+      "type": "tableArray",
+      "flex": "md12",
+      "fields": [
+        {
+          "schemaType": "date",
+          "key": "date",
+          "type": "input@datetime-local"
+        },
+        {
+          "schemaType": "string",
+          "key": "type",
+          "type": "input@select",
+          "optionsType": "onlyValue",
+          "options": [
+            "online",
+            "offline"
+          ]
+        }
+      ],
+      "addable": true
+    },
+    {
+      "_id": "5c6827b9d6289f4a7c7695c9",
+      "schemaType": "array",
+      "key": "contentHistory",
+      "type": "tableArray",
+      "flex": "md12",
+      "fields": [
+        {
+          "schemaType": "objectId",
+          "key": "content",
+          "ref": "Content",
+          "autopopulate": true,
+          "type": "ref-select",
+          "labelProp": "name"
+        },
+        {
+          "schemaType": "date",
+          "key": "begin",
+          "type": "input@datetime-local"
+        },
+        {
+          "schemaType": "number",
+          "key": "duration",
+          "type": "input@number"
+        }
+      ],
+      "addable": true
+    }
+  ],
+  "extensions": [],
+  "__v": 0,
+  "title": "name"
+}

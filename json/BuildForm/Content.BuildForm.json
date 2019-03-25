@@ -1,0 +1,99 @@
+{
+  "_id": "5c9342a8a795034350ec626b",
+  "type": "Collection",
+  "name": "Content",
+  "tabs": [],
+  "id": "5c9342a8a795034350ec626b",
+  "fields": [
+    {
+      "_id": "5c682740d6289f4a7c7695b0",
+      "schemaType": "string",
+      "key": "name",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c682740d6289f4a7c7695ae",
+      "schemaType": "string",
+      "key": "type",
+      "type": "input@select",
+      "flex": "md4",
+      "optionsType": "onlyValue",
+      "options": [
+        "video",
+        "image"
+      ]
+    },
+    {
+      "_id": "5c9343caa795034350ec6274",
+      "schemaType": "boolean",
+      "key": "status",
+      "default": "",
+      "type": "input@checkbox",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c9343caa795034350ec6273",
+      "schemaType": "string",
+      "key": "ext",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c936525e6c54c4b7fa52f9d",
+      "schemaType": "string",
+      "key": "path",
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c682740d6289f4a7c7695af",
+      "schemaType": "number",
+      "key": "duration",
+      "type": "input@number",
+      "flex": "md4"
+    },
+    {
+      "_id": "5c9342cba795034350ec626c",
+      "schemaType": "array",
+      "key": "parts",
+      "type": "array",
+      "fields": [
+        {
+          "schemaType": "string",
+          "key": "part",
+          "type": "input"
+        }
+      ]
+    },
+    {
+      "_id": "5c682740d6289f4a7c7695ad",
+      "schemaType": "objectId",
+      "key": "customer",
+      "ref": "Customer",
+      "type": "ref-select",
+      "labelProp": "name",
+      "addable": true,
+      "flex": "md4"
+    },
+    {
+      "_id": "5c682740d6289f4a7c7695ab",
+      "schemaType": "array",
+      "key": "tag",
+      "fields": [
+        {
+          "schemaType": "string"
+        }
+      ],
+      "type": "input@multiSelect",
+      "addable": true,
+      "optionsType": "onlyValue",
+      "options": [
+        "active",
+        "inactive"
+      ]
+    }
+  ],
+  "extensions": [],
+  "__v": 0
+}

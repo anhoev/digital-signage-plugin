@@ -1,15 +1,14 @@
 const admin = require('firebase-admin');
 
 const cms = global.cms;
+const Device = cms.getModel('Device');
 
 module.exports.getList = async function () {
-  const Devices = cms.getModel('Devices');
-  return Devices.find({});
+  return Device.find({});
 };
 
 module.exports.register = async function (info) {
-  const Devices = cms.getModel('Devices');
-  return Devices.create(info);
+  return Device.create(info);
 };
 
 module.exports.pushMessage = async function (tokens, data) {

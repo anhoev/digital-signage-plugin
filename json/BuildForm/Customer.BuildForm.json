@@ -1,0 +1,19 @@
+{
+  "_id": "5c94c15cc80d2990a97c270d",
+  "__v": 0,
+  "title": "name",
+  "type": "Collection",
+  "alwaysLoad": true,
+  "name": "Customer",
+  "id": "5c94c15cc80d2990a97c270d",
+  "tabs": [],
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5c94c174c80d2990a97c270e",
+      "schemaType": "string",
+      "key": "name",
+      "type": "input"
+    }
+  ]
+}

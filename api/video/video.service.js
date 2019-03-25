@@ -8,28 +8,28 @@ let path = require('path');
 const _ = require('lodash');
 const cms = global['cms'];
 const config = require('../../config/environment');
-const Videos = require('./video.model');
 const fileService = require('../../common/services/file.service');
 const notifyService = require('../../common/services/notify.service');
 // const registrationToken = require('../../common/constants/consts').REGISTRATION_TOKEN;
 const dirtree = require('directory-tree');
+const Content = global.cms.getModel('Content');
 
-exports.create = async function (_param) {
-  const newVideo = new Videos(_param);
-  return await newVideo.save();
-};
-
-exports.list = async function (_params) {
-  const optionFind = {
-    $and: []
-  };
-  if (optionFind.$and.length === 0) {
-    Reflect.deleteProperty(optionFind, '$and');
+function generatePartsFolderName(_path) {
+  const fileNameWithOutExtension = path.basename(_path, path.extname(_path));
+  const dirName = path.dirname(_path);
+  if (dirName === '.') {
+    const partFolderName = ['', fileNameWithOutExtension].join('_');
+    return path.join(config.imageStore, '.parts', partFolderName);
+  } else {
+    const dirnameReplace = dirName.split(path.sep); // "a/b/c" =>[a,b,c]
+    const partFolderName = [...dirnameReplace, fileNameWithOutExtension].join('_');
+    return path.join(config.imageStore, '.parts', partFolderName);
   }
-  return await Videos
-    .find(optionFind, _params)
-    .exec();
-};
+}
+
+function onEachFile(item) {
+  item.path = path.relative(config.imageStore, item.path);
+}
 
 exports.handlerUpload = async function (outputPatch, pathFile) {
   const maxSize = config.split_size;
@@ -41,7 +41,7 @@ exports.handlerUpload = async function (outputPatch, pathFile) {
     }
     const ext = path.extname(namebase);
     const param = {
-      video: path.basename(namebase, path.extname(namebase)),
+      name: path.basename(namebase, path.extname(namebase)),
       path: path.relative(config.imageStore, pathFile),
       parts: [],
       ext
@@ -50,8 +50,7 @@ exports.handlerUpload = async function (outputPatch, pathFile) {
       .forEach((fileName) => {
         param.parts.push(fileName);
       });
-    const MediaFile = cms.getModel('MediaFile');
-    const newVideo = await MediaFile.findOneAndUpdate({
+    const newVideo = await Content.findOneAndUpdate({
       path: param.path
     }, {
       $set: param
@@ -74,14 +73,32 @@ exports.handlerUpload = async function (outputPatch, pathFile) {
   });
 };
 
-function onEachFile(item) {
-  item.path = path.relative(config.imageStore, item.path);
-}
-
 exports.getDirectoryTree = function () {
   return dirtree(path.join(config.imageStore), { exclude: /\.parts/ }, onEachFile, onEachFile);
 };
 
 exports.newFolder = function (_path, name) {
   fs.mkdirSync(path.join(config.imageStore, _path, name));
+};
+
+exports.deleteFile = function (_path) {
+  const unlinkPath = path.join(config.imageStore, _path);
+  return Promise.all([
+      new Promise((resolve, reject) => {
+        fs.unlink(unlinkPath, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            const pathParts = generatePartsFolderName(_path);
+            fileService.removeFolder(pathParts).then(() => {
+              resolve();
+            }).catch(err => {
+              reject(err);
+            });
+          }
+        });
+      }),
+      Content.findOneAndRemove({ path: _path })
+    ]
+  );
 };

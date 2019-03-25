@@ -24,46 +24,15 @@ exports.upload = async function (req, res, next) {
     });
 };
 
-function generatePartsFolderName(_path) {
-  const fileNameWithOutExtension = path.basename(_path, path.extname(_path));
-  const dirName = path.dirname(_path);
-  if (dirName === '.') {
-    const partFolderName = ['', fileNameWithOutExtension].join('_');
-    return path.join(config.imageStore, '.parts', partFolderName);
-  } else {
-    const dirnameReplace = dirName.split(path.sep); // "a/b/c" =>[a,b,c]
-    const partFolderName = [...dirnameReplace, fileNameWithOutExtension].join('_');
-    return path.join(config.imageStore, '.parts', partFolderName);
-  }
-}
-
 exports.delete = async function (req, res) {
   const _path = req.query.path;
-  const unlinkPath = path.join(config.imageStore, _path);
-  const MediaFile = global.cms.getModel('MediaFile');
-  Promise.all([
-      new Promise((resolve, reject) => {
-        fs.unlink(unlinkPath, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            const pathParts = generatePartsFolderName(_path);
-            fileService.removeFolder(pathParts).then(() => {
-              resolve();
-            }).catch(err => {
-              reject(err);
-            });
-          }
-        });
-      }),
-      MediaFile.findOneAndRemove({ path: _path })
-    ]
-  ).then((res) => {
-    res.status(200).json({ ok: 'ok' });
-  }).catch(err => {
-    res.status(400).json({ err });
-
-  });
+  uploadService.deleteFile(_path)
+    .then((res) => {
+      res.status(200).json({ ok: 'ok' });
+    })
+    .catch(err => {
+      res.status(400).json({ err });
+    });
 };
 
 exports.deleteFolder = async function (req, res) {

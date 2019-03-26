@@ -1,4 +1,5 @@
 const deviceService = require('./devices.service');
+const Content = cms.getModel('Content');
 
 module.exports.getList = function (req, res) {
   deviceService.getList()
@@ -32,8 +33,7 @@ module.exports.register = function (req, res) {
 module.exports.pushMessage = function (req, res) {
   const files = req.body.files;
   const tokens = req.body.token;
-  const MediaFile = cms.getModel('MediaFile');
-  MediaFile.find({ path: { $in: files } })
+  Content.find({ path: { $in: files } })
     .then(data => {
       return deviceService.pushMessage(tokens, data);
     })

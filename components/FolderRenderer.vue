@@ -1,6 +1,6 @@
 <template>
     <v-layout>
-        <v-flex md2 v-for="item in items" pa-2 style="position: relative">
+        <v-flex md2 v-for="item in items" pa-2 style="position: relative" :key="item.path">
             <v-card center style="cursor: pointer" @click.stop="$emit('select', item)" @dblclick="select(item)">
                 <v-flex center pa-3>
                     <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>

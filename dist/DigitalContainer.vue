@@ -16,9 +16,6 @@
             <v-btn @click="dialogUploadFile=true">
                 Upload file
             </v-btn>
-            <!--<v-btn @click="dialogPushToDevice2=true; ">-->
-            <!--PUSh2-->
-            <!--</v-btn>-->
         </v-toolbar>
         <v-content>
             <v-container fluid="" fill-height="">
@@ -35,38 +32,8 @@
                         <folder-renderer v-if="current" :items="current.children" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
                     </v-flex>
                     <v-flex md4="">
-                        <v-card>
-                            <v-toolbar color="light-blue" dark="">
-                                <v-toolbar-title>SelectedFile</v-toolbar-title>
-                                <v-spacer></v-spacer>
-                                <v-btn @click="dialogPushToDevice=true">
-                                    PUSH TO DEVICE
-                                </v-btn>
-                            </v-toolbar>
-
-                            <v-list two-line="" subheader="">
-                                <v-list-tile v-for="item in selected" :key="item.path" avatar="" class="py-2" @click="">
-                                    <v-list-tile-avatar>
-                                        <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>
-                                        <i class="far fa-file grid-icon" v-else=""></i>
-                                    </v-list-tile-avatar>
-                                    <v-list-tile-content>
-                                        <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
-                                        <v-list-tile-sub-title>path: {{item.path}}</v-list-tile-sub-title>
-                                    </v-list-tile-content>
-
-                                    <v-list-tile-action>
-                                        <v-btn icon="" ripple="" @click="selected = selected.filter(i=>i!==item)">
-                                            <v-icon color="grey lighten-1">delete</v-icon>
-                                        </v-btn>
-                                    </v-list-tile-action>
-                                </v-list-tile>
-
-                                <v-flex v-if="selected.length===0" pa-2="">
-                                    No selected items
-                                </v-flex>
-                            </v-list>
-                        </v-card>
+                        <device-list @open-dialog="dialogPushToDevice=true" :selected="selected" @remove-item="removeSelected">
+                        </device-list>
                     </v-flex>
                 </v-layout>
             </v-container>
@@ -149,13 +116,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
-
-var _axios = _interopRequireDefault(require("axios"));
-
-var _lodash = _interopRequireDefault(require("lodash"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 var _default = {
   name: 'App',
 
@@ -309,6 +269,10 @@ var _default = {
       }).then(res => {
         this.getDirectory();
       });
+    },
+
+    removeSelected(item) {
+      this.selected = this.selected.filter(i => i !== item);
     }
 
   },

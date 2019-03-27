@@ -8,13 +8,13 @@ module.exports.getList = async function () {
 };
 
 module.exports.register = async function (info) {
-  return Device.create(info);
+  return Device.findOneAndUpdate({ token: info.token }, info, { upsert: true, new: true });
 };
 
 module.exports.pushMessage = async function (tokens, data) {
   console.log(data);
   const message = {
-    data: { files: JSON.stringify(data) },
+    data: { files: JSON.stringify(data), type: 'file' },
     tokens: tokens
   };
   return admin.messaging().sendMulticast(message);

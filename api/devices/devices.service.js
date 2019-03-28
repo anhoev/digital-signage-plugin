@@ -12,7 +12,6 @@ module.exports.register = async function (info) {
 };
 
 module.exports.pushMessage = async function (tokens, data) {
-  console.log(data);
   const message = {
     data: { files: JSON.stringify(data), type: 'file' },
     tokens: tokens

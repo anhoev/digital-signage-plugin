@@ -1,9 +1,7 @@
 {
   "_id": "5c9342a8a795034350ec626b",
-  "type": "Collection",
-  "name": "Content",
-  "tabs": [],
-  "id": "5c9342a8a795034350ec626b",
+  "__v": 0,
+  "extensions": [],
   "fields": [
     {
       "_id": "5c682740d6289f4a7c7695b0",
@@ -94,6 +92,10 @@
       ]
     }
   ],
-  "extensions": [],
-  "__v": 0
+  "id": "5c9342a8a795034350ec626b",
+  "tabs": [],
+  "name": "Content",
+  "type": "Collection",
+  "alwaysLoad": true,
+  "title": "name"
 }

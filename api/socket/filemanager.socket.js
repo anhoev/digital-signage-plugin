@@ -1,17 +1,43 @@
 const Device = cms.getModel('Device');
 const _ = require('lodash');
+const Joi = require('joi');
 
 const EVENT = {
   APP_ACTION_DELETE_FILE: 'APP_ACTION_DELETE_FILE',
   APP_ACTION_PUSH_FILES: 'APP_ACTION_PUSH_FILES',
   APP_ACTION_PUSH_PLAYLIST: 'APP_ACTION_PUSH_PLAYLIST',
   APP_ACTION_DELETE_PLAYLIST: 'APP_ACTION_DELETE_PLAYLIST',
+  APP_ACTION_SET_ACTIVE_PLAYLIST: 'APP_ACTION_SET_ACTIVE_PLAYLIST',
   WEB_LISTENER_DELETE_FILE: 'WEB_LISTENER_DELETE_FILE',
   WEB_LISTENER_GET_LIST_FILE: 'WEB_LISTENER_GET_LIST_FILE',
   WEB_LISTENER_GET_PLAYLIST: 'WEB_LISTENER_GET_PLAYLIST',
   WEB_LISTENER_DELETE_PLAYLIST: 'WEB_LISTENER_DELETE_PLAYLIST',
+  WEB_LISTENER_SET_ACTIVE_PLAYLIST: 'WEB_LISTENER_SET_ACTIVE_PLAYLIST',
+  WEB_EVENT_LIST_FILE: 'WEB_EVENT_LIST_FILE',
+  WEB_EVENT_LIST_PLAYLIST: 'WEB_EVENT_LIST_PLAYLIST',
+  WEB_LISTENER_VIEW_DEVICE: 'WEB_LISTENER_VIEW_DEVICE',
   ERROR: 'ERROR'
 };
+
+
+const contentSchema = Joi.object().keys({
+  _id: Joi.string().required(),
+  name: Joi.string(),
+  type: Joi.string(),
+  status: Joi.boolean(),
+  ext: Joi.string(),
+  path: Joi.string(),
+  parts: Joi.array().items(Joi.string()),
+  tag: Joi.array()
+});
+
+const playlistSchema = Joi.object().keys({
+  content: Joi.array().items(Joi.object().keys({ media: contentSchema, duration: Joi.number() })),
+  _id: Joi.string(),
+  name: Joi.string()
+});
+
+const arrayPlaylistSchema = Joi.array().items(playlistSchema);
 
 function socketAppMiddleware(socket, next) {
   const token = socket.handshake.query.token;
@@ -59,6 +85,12 @@ module.exports = cms => {
   });
 
   webNamespace.on('connection', function (socket) {
+
+    socket.on(EVENT.WEB_LISTENER_VIEW_DEVICE, deviceId => {
+      socket.leaveAll();
+      socket.join(`files${deviceId}`);
+    });
+
     socket.on(EVENT.WEB_LISTENER_GET_LIST_FILE, (deviceId, callbackOnViewDevice) => {
       if (deviceId) {
         const deviceSocket = onlineDevices[deviceId];
@@ -85,8 +117,9 @@ module.exports = cms => {
       if (deviceId && name) {
         const deviceSocket = onlineDevices[deviceId];
         if (deviceSocket) {
-          deviceSocket.emit(EVENT.APP_ACTION_DELETE_FILE, name, () => {
-            onDone();
+          deviceSocket.emit(EVENT.APP_ACTION_DELETE_FILE, name, (err, data) => {
+            onDone(err, data);
+            socket.broadcast.in(`files${deviceId}`).emit(EVENT.WEB_EVENT_LIST_FILE, data);
           });
         } else {
           onDone('device offline');
@@ -100,11 +133,17 @@ module.exports = cms => {
       if (deviceId) {
         const deviceSocket = onlineDevices[deviceId];
         if (deviceSocket) {
-          deviceSocket.emit(EVENT.APP_ACTION_PUSH_PLAYLIST, name, (err, playlist) => {
+          deviceSocket.emit(EVENT.APP_ACTION_PUSH_PLAYLIST, (err, playlist) => {
             if (err) {
               callbackOnViewPlaylist(err);
             } else {
-              callbackOnViewPlaylist(null, playlist);
+              const isValid = arrayPlaylistSchema.validate(playlist, { allowUnknown: true });
+              if (isValid.error) {
+                console.log('error on receive playlist', isValid.error.message);
+                callbackOnViewPlaylist(isValid.error.message);
+              } else {
+                callbackOnViewPlaylist(null, playlist);
+              }
             }
           });
           setTimeout(() => {
@@ -120,7 +159,28 @@ module.exports = cms => {
       if (deviceId && playlistId) {
         const deviceSocket = onlineDevices[deviceId];
         if (deviceSocket) {
-          deviceSocket.emit(EVENT.APP_ACTION_DELETE_PLAYLIST, name, (err, playlist) => {
+          deviceSocket.emit(EVENT.APP_ACTION_DELETE_PLAYLIST, playlistId, (err, playlist) => {
+            if (err) {
+              callbackOnDeletePlaylist(err);
+            } else {
+              callbackOnDeletePlaylist(null, playlist);
+              socket.broadcast.in(`files${deviceId}`).emit(EVENT.WEB_EVENT_LIST_PLAYLIST, playlist);
+            }
+          });
+          setTimeout(() => {
+            callbackOnDeletePlaylist('connect device timeout');
+          }, 8000);
+        }
+      } else {
+        callbackOnDeletePlaylist('device id and playlist id is require');
+      }
+    });
+
+    socket.on(EVENT.WEB_LISTENER_SET_ACTIVE_PLAYLIST, (deviceId, playlistId, callbackOnDeletePlaylist) => {
+      if (deviceId && playlistId) {
+        const deviceSocket = onlineDevices[deviceId];
+        if (deviceSocket) {
+          deviceSocket.emit(EVENT.APP_ACTION_SET_ACTIVE_PLAYLIST, playlistId, (err, playlist) => {
             if (err) {
               callbackOnDeletePlaylist(err);
             } else {

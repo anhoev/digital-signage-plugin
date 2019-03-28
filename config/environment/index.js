@@ -8,7 +8,7 @@ module.exports = _.merge(
   {
     host: 'localhost',
     port: 8888,
-    imageStore: cms.storage,
+    imageStore: global.cms.storage,
     prefixFile: 'media_',
     split_size: 524288,
     prefix_resource: {

@@ -56,7 +56,47 @@
                                 </v-card>
                             </v-tab-item>
                             <v-tab-item>
-                                2
+                                <v-card style="width: 100%">
+
+                                    <v-expansion-panel>
+                                        <v-expansion-panel-content v-for="item in playlist">
+                                            <template v-slot:header class.native="pa-2">
+                                                <v-list-tile
+                                                        class="py-2"
+                                                        style="width: 100%"
+                                                >
+                                                    <v-list-tile-content>
+                                                        <v-list-tile-title>name: {{item.name}}
+                                                        </v-list-tile-title>
+                                                    </v-list-tile-content>
+                                                    <v-list-tile-action>
+                                                        <v-btn icon ripple @click.prevent.stop="deletePlaylist(item)">
+                                                            <v-icon color="grey lighten-1">delete</v-icon>
+                                                        </v-btn>
+                                                    </v-list-tile-action>
+                                                </v-list-tile>
+                                            </template>
+                                            <v-card>
+                                                <v-list>
+                                                    <v-list-tile
+                                                            v-for="cItem in item.content"
+                                                            avatar
+                                                            class="py-2"
+                                                            style="width: 100%"
+                                                    >
+                                                        <v-list-tile-avatar>
+                                                            <i class="far fa-folder grid-icon"></i>
+                                                        </v-list-tile-avatar>
+                                                        <v-list-tile-content>
+                                                            <v-list-tile-title>name: {{cItem.media.name}}
+                                                            </v-list-tile-title>
+                                                        </v-list-tile-content>
+                                                    </v-list-tile>
+                                                </v-list>
+                                            </v-card>
+                                        </v-expansion-panel-content>
+                                    </v-expansion-panel>
+                                </v-card>
                             </v-tab-item>
                         </v-tabs-items>
                     </v-flex>
@@ -66,7 +106,10 @@
         </v-content>
         <v-navigation-drawer permanent style="border-left: 1px solid #ddd;">
             <v-list dense>
-                <v-list-tile v-for="item in devices" @click="selectItem(item)">
+                <v-list-tile
+                        v-for="item in devices" @click="selectItem(item)"
+                        :class="{'selected-playlist':isSelected(item)}"
+                >
                     <v-list-tile-content>
                         <v-list-tile-title>{{item.name}}</v-list-tile-title>
                     </v-list-tile-content>
@@ -93,15 +136,27 @@
       socket: null,
       error: '',
       connecting: false,
-      active: null
+      active: null,
+      playlist: []
     }),
     props: {
       source: String
     },
     methods: {
+      isSelected(item) {
+        if (!this.selectedDevices) {
+          return false;
+        }
+        return this.selectedDevices === item;
+      },
       connectSocket() {
         this.socket = io.connect(`ws://${location.hostname}:8888/file-manager-web`);
-
+        this.socket.on('WEB_EVENT_LIST_FILE', files => {
+          this.files = files;
+        });
+        this.socket.on('WEB_EVENT_LIST_PLAYLIST', playlist => {
+          this.playlist = playlist;
+        });
       },
       getDevices() {
         const Model = cms.getModel('Device');
@@ -115,6 +170,7 @@
         this.files = [];
         this.connecting = true;
         this.error = null;
+        this.socket.emit('WEB_LISTENER_VIEW_DEVICE', item._id);
         this.socket.emit('WEB_LISTENER_GET_LIST_FILE', item._id, (err, files) => {
           if (err) {
             this.error = err;
@@ -123,6 +179,10 @@
             this.files = files;
           }
           this.connecting = false;
+        });
+        this.socket.emit('WEB_LISTENER_GET_PLAYLIST', item._id, (err, playlist) => {
+          console.log(playlist);
+          this.playlist = playlist;
         });
       },
       pushNotify() {
@@ -145,11 +205,19 @@
           });
       },
       deleteFile(item) {
-        this.socket.emit('WEB_LISTENER_DELETE_FILE', this.selectedDevices._id, item, (err) => {
+        this.socket.emit('WEB_LISTENER_DELETE_FILE', this.selectedDevices._id, item, (err, files) => {
           if (err) {
             alert(err);
           }
-          this.selectItem(this.selectedDevices);
+          this.files = files;
+        });
+      },
+      deletePlaylist(item) {
+        this.socket.emit('WEB_LISTENER_DELETE_PLAYLIST', this.selectedDevices._id, item._id, (err, playlist) => {
+          if (err) {
+            alert(err);
+          }
+          this.playlist = playlist;
         });
       }
     },
@@ -160,6 +228,14 @@
   };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+    .selected-playlist {
+        background-color: #03a9f4;
+        color: #fff;
 
+        .v-list__tile__title {
+            transition: none !important;
+
+        }
+    }
 </style>

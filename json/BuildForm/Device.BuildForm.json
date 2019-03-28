@@ -1,9 +1,7 @@
 {
   "_id": "5c9466cd9355686e4f94d19c",
-  "type": "Collection",
-  "tabs": [],
-  "name": "Device",
-  "id": "5c9466cd9355686e4f94d19c",
+  "__v": 0,
+  "extensions": [],
   "fields": [
     {
       "_id": "5c9467ad9355686e4f94d1a1",
@@ -108,7 +106,10 @@
       "addable": true
     }
   ],
-  "extensions": [],
-  "__v": 0,
-  "title": "name"
+  "id": "5c9466cd9355686e4f94d19c",
+  "name": "Device",
+  "tabs": [],
+  "type": "Collection",
+  "title": "name",
+  "alwaysLoad": true
 }

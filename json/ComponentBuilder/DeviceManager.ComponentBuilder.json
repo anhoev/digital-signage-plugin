@@ -1,0 +1,13 @@
+{
+  "_id": "5c99f95e503e0333f52b8fb0",
+  "__v": 0,
+  "items": [
+    {
+      "choice": "view",
+      "component": "DeviceManager"
+    }
+  ],
+  "renderToRoute": "devices",
+  "isProduction": true,
+  "id": "5c99f95e503e0333f52b8fb0"
+}

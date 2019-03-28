@@ -151,6 +151,7 @@
         } else {
           this.selectedDevices = this.selectedDevices.filter(i => i !== token);
         }
+        console.log(this.selectedDevices)
       },
       getPlaylist() {
         const Model = cms.getModel('Playlist');
@@ -163,15 +164,13 @@
         });
       },
       pushNotify() {
-        console.log(JSON.stringify({ id: this.selectedPlaylist._id, devices: this.devices })
-        );
         fetch(cms.baseUrl + 'digital/playlist/push', {
           method: 'POST',
           headers: {
             'Accept': 'application/json, text/plain, */*',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id: this.selectedPlaylist._id, devices: this.devices })
+          body: JSON.stringify({ id: this.selectedPlaylist._id, devices: this.selectedDevices })
         })
           .then(res => {
             return res.json();

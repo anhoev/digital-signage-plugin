@@ -53,57 +53,25 @@
       "labelProp": "owner"
     },
     {
-      "_id": "5c6824871d616c3dda444c7a",
-      "schemaType": "array",
-      "key": "connectionHistory",
-      "type": "tableArray",
-      "flex": "md12",
-      "fields": [
-        {
-          "schemaType": "date",
-          "key": "date",
-          "type": "input@datetime-local"
-        },
-        {
-          "schemaType": "string",
-          "key": "type",
-          "type": "input@select",
-          "optionsType": "onlyValue",
-          "options": [
-            "online",
-            "offline"
-          ]
-        }
-      ],
-      "addable": true
+      "_id": "5c9ca66c2fda403ce07188ab",
+      "schemaType": "objectId",
+      "key": "deviceType",
+      "ref": "DeviceType",
+      "autopopulate": true,
+      "type": "ref-select",
+      "labelProp": "name"
     },
     {
-      "_id": "5c6827b9d6289f4a7c7695c9",
-      "schemaType": "array",
-      "key": "contentHistory",
-      "type": "tableArray",
-      "flex": "md12",
-      "fields": [
-        {
-          "schemaType": "objectId",
-          "key": "content",
-          "ref": "Content",
-          "autopopulate": true,
-          "type": "ref-select",
-          "labelProp": "name"
-        },
-        {
-          "schemaType": "date",
-          "key": "begin",
-          "type": "input@datetime-local"
-        },
-        {
-          "schemaType": "number",
-          "key": "duration",
-          "type": "input@number"
-        }
-      ],
-      "addable": true
+      "_id": "5c9ca7162fda403ce07188c7",
+      "schemaType": "string",
+      "key": "resolution",
+      "type": "input@select",
+      "optionsType": "onlyValue",
+      "options": [
+        "1920x1920",
+        "1920x1080",
+        "1080x1920"
+      ]
     }
   ],
   "id": "5c9466cd9355686e4f94d19c",

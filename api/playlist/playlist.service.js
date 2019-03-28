@@ -8,7 +8,7 @@ module.exports.pushPlaylist = function (playlistId, devices) {
 
     const message = {
       data: { playlist: JSON.stringify(pushData), type: 'playlist' },
-      tokens: devices.map(i => i.token)
+      tokens: devices
     };
     return admin.messaging().sendMulticast(message);
   });

@@ -1,0 +1,37 @@
+{
+  "_id": "5c9ca78b2fda403ce07188d2",
+  "__v": 0,
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5c9ca8652fda403ce07188ef",
+      "schemaType": "objectId",
+      "key": "device",
+      "ref": "Device",
+      "type": "ref-select",
+      "labelProp": "name"
+    },
+    {
+      "_id": "5c9ca7ae2fda403ce07188d4",
+      "schemaType": "string",
+      "key": "date",
+      "type": "input"
+    },
+    {
+      "_id": "5c9ca7ae2fda403ce07188d3",
+      "schemaType": "string",
+      "key": "type",
+      "type": "input@select",
+      "optionsType": "onlyValue",
+      "options": [
+        "online",
+        "offline"
+      ]
+    }
+  ],
+  "id": "5c9ca78b2fda403ce07188d2",
+  "name": "ConnectionHistory",
+  "tabs": [],
+  "type": "Collection",
+  "title": "date"
+}

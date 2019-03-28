@@ -1,0 +1,38 @@
+{
+  "_id": "5c9ca7bf2fda403ce07188d7",
+  "__v": 0,
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5c9ca84a2fda403ce07188ec",
+      "schemaType": "objectId",
+      "key": "device",
+      "ref": "Device",
+      "autopopulate": true,
+      "type": "ref-select",
+      "labelProp": "name"
+    },
+    {
+      "_id": "5c9ca7f02fda403ce07188da",
+      "schemaType": "string",
+      "key": "content",
+      "type": "input"
+    },
+    {
+      "_id": "5c9ca7f02fda403ce07188d9",
+      "schemaType": "date",
+      "key": "begin",
+      "type": "input@datetime-local"
+    },
+    {
+      "_id": "5c9ca7f02fda403ce07188d8",
+      "schemaType": "number",
+      "key": "duration",
+      "type": "input@number"
+    }
+  ],
+  "id": "5c9ca7bf2fda403ce07188d7",
+  "tabs": [],
+  "name": "ContentHistory",
+  "type": "Collection"
+}

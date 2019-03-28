@@ -1,6 +1,7 @@
-const Device = cms.getModel('Device');
 const _ = require('lodash');
 const Joi = require('joi');
+const Device = cms.getModel('Device');
+const ConnectionHistory = cms.getModel('ConnectionHistory');
 
 const EVENT = {
   APP_ACTION_DELETE_FILE: 'APP_ACTION_DELETE_FILE',
@@ -15,7 +16,9 @@ const EVENT = {
   WEB_LISTENER_SET_ACTIVE_PLAYLIST: 'WEB_LISTENER_SET_ACTIVE_PLAYLIST',
   WEB_EVENT_LIST_FILE: 'WEB_EVENT_LIST_FILE',
   WEB_EVENT_LIST_PLAYLIST: 'WEB_EVENT_LIST_PLAYLIST',
+  WEB_EVENT_LIST_ONLINE_DEVICE: 'WEB_EVENT_LIST_ONLINE_DEVICE',
   WEB_LISTENER_VIEW_DEVICE: 'WEB_LISTENER_VIEW_DEVICE',
+  WEB_LISTENER_GET_ONLINE_DEVICE: 'WEB_LISTENER_GET_ONLINE_DEVICE',
   ERROR: 'ERROR'
 };
 
@@ -63,7 +66,13 @@ function socketAppMiddleware(socket, next) {
 }
 
 function changeStatusDevice(socket, status) {
-  Device.findOneAndUpdate({ _id: socket.device._id }, { online: status }).then(res => console.log(res)).catch(err => console.log(err));
+  const data = {
+    device: socket.device._id,
+    date: new Date(),
+    type: status ? 'online' : 'offline'
+  };
+  ConnectionHistory.create(data);
+  // Device.findOneAndUpdate({ _id: socket.device._id }, { online: status }).then(res => console.log(res)).catch(err => console.log(err));
 }
 
 module.exports = cms => {
@@ -74,17 +83,23 @@ module.exports = cms => {
   appNamespace.use(socketAppMiddleware);
   appNamespace.on('connection', function (socket) {
     onlineDevices[socket.device._id] = socket;
+    webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
 
     changeStatusDevice(socket, true);
 
     socket.on('disconnect', () => {
       changeStatusDevice(socket, false);
       delete onlineDevices[socket.device._id];
+      webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
       console.log('disconnected');
     });
   });
 
   webNamespace.on('connection', function (socket) {
+
+    socket.on(EVENT.WEB_LISTENER_GET_ONLINE_DEVICE, () => {
+      socket.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
+    });
 
     socket.on(EVENT.WEB_LISTENER_VIEW_DEVICE, deviceId => {
       socket.leaveAll();

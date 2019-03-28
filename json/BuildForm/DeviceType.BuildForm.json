@@ -1,0 +1,43 @@
+{
+  "_id": "5c9ca6112fda403ce07188a4",
+  "__v": 0,
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5c9ca6542fda403ce07188aa",
+      "schemaType": "string",
+      "key": "name",
+      "type": "input"
+    },
+    {
+      "_id": "5c9ca6542fda403ce07188a9",
+      "schemaType": "string",
+      "key": "size",
+      "type": "input@select",
+      "label": "Size (inch)",
+      "optionsType": "onlyValue",
+      "options": [
+        "26.6",
+        "49"
+      ]
+    },
+    {
+      "_id": "5c9ca6542fda403ce07188a8",
+      "schemaType": "string",
+      "key": "resolution",
+      "type": "input@select",
+      "optionsType": "onlyValue",
+      "options": [
+        "1920x1920",
+        "1920x1080",
+        "1080x1920"
+      ]
+    }
+  ],
+  "id": "5c9ca6112fda403ce07188a4",
+  "name": "DeviceType",
+  "tabs": [],
+  "title": "name",
+  "type": "Collection",
+  "alwaysLoad": true
+}

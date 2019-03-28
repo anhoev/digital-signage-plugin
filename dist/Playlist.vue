@@ -132,6 +132,8 @@ var _default = {
       } else {
         this.selectedDevices = this.selectedDevices.filter(i => i !== token);
       }
+
+      console.log(this.selectedDevices);
     },
 
     getPlaylist() {
@@ -147,10 +149,6 @@ var _default = {
     },
 
     pushNotify() {
-      console.log(JSON.stringify({
-        id: this.selectedPlaylist._id,
-        devices: this.devices
-      }));
       fetch(cms.baseUrl + 'digital/playlist/push', {
         method: 'POST',
         headers: {
@@ -159,7 +157,7 @@ var _default = {
         },
         body: JSON.stringify({
           id: this.selectedPlaylist._id,
-          devices: this.devices
+          devices: this.selectedDevices
         })
       }).then(res => {
         return res.json();

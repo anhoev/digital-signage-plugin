@@ -2,6 +2,8 @@ const _ = require('lodash');
 const Joi = require('joi');
 const Device = cms.getModel('Device');
 const ConnectionHistory = cms.getModel('ConnectionHistory');
+const Content = cms.getModel('Content');
+const Playlist = cms.getModel('Playlist');
 
 const EVENT = {
   APP_ACTION_DELETE_FILE: 'APP_ACTION_DELETE_FILE',
@@ -9,16 +11,24 @@ const EVENT = {
   APP_ACTION_PUSH_PLAYLIST: 'APP_ACTION_PUSH_PLAYLIST',
   APP_ACTION_DELETE_PLAYLIST: 'APP_ACTION_DELETE_PLAYLIST',
   APP_ACTION_SET_ACTIVE_PLAYLIST: 'APP_ACTION_SET_ACTIVE_PLAYLIST',
+  APP_EVENT_RECEIVE_FILE: 'APP_EVENT_RECEIVE_FILE',
+  APP_EVENT_RECEIVE_PLAYLIST: 'APP_EVENT_RECEIVE_PLAYLIST',
+  APP_LISTENER_FILE_PROGRESS: 'APP_LISTENER_FILE_PROGRESS',
+  APP_LISTENER_PLAYLIST_PROGRESS: 'APP_LISTENER_PLAYLIST_PROGRESS',
   WEB_LISTENER_DELETE_FILE: 'WEB_LISTENER_DELETE_FILE',
   WEB_LISTENER_GET_LIST_FILE: 'WEB_LISTENER_GET_LIST_FILE',
   WEB_LISTENER_GET_PLAYLIST: 'WEB_LISTENER_GET_PLAYLIST',
   WEB_LISTENER_DELETE_PLAYLIST: 'WEB_LISTENER_DELETE_PLAYLIST',
   WEB_LISTENER_SET_ACTIVE_PLAYLIST: 'WEB_LISTENER_SET_ACTIVE_PLAYLIST',
   WEB_EVENT_LIST_FILE: 'WEB_EVENT_LIST_FILE',
+  WEB_EVENT_FILE_PROGRESS: 'WEB_EVENT_FILE_PROGRESS',
+  WEB_EVENT_PLAYLIST_PROGRESS: 'WEB_EVENT_PLAYLIST_PROGRESS',
   WEB_EVENT_LIST_PLAYLIST: 'WEB_EVENT_LIST_PLAYLIST',
   WEB_EVENT_LIST_ONLINE_DEVICE: 'WEB_EVENT_LIST_ONLINE_DEVICE',
   WEB_LISTENER_VIEW_DEVICE: 'WEB_LISTENER_VIEW_DEVICE',
   WEB_LISTENER_GET_ONLINE_DEVICE: 'WEB_LISTENER_GET_ONLINE_DEVICE',
+  WEB_LISTENER_PUSH_FILE_TO_DEVICE: 'WEB_LISTENER_PUSH_FILE_TO_DEVICE',
+  WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE: 'WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE',
   ERROR: 'ERROR'
 };
 
@@ -41,6 +51,13 @@ const playlistSchema = Joi.object().keys({
 });
 
 const arrayPlaylistSchema = Joi.array().items(playlistSchema);
+
+const progressSchema = Joi.array().items(
+  Joi.object().keys({
+    name: Joi.string(),
+    progress: Joi.number()
+  })
+);
 
 function socketAppMiddleware(socket, next) {
   const token = socket.handshake.query.token;
@@ -65,6 +82,8 @@ function socketAppMiddleware(socket, next) {
   }
 }
 
+// progress = [{name: 'abc', progress: 0.4},{name: 'xyz', progress: 0.45}];
+
 function changeStatusDevice(socket, status) {
   const data = {
     device: socket.device._id,
@@ -87,6 +106,21 @@ module.exports = cms => {
 
     changeStatusDevice(socket, true);
 
+    socket.on(EVENT.APP_LISTENER_FILE_PROGRESS, (data) => {
+      const isValid = progressSchema.validate(data, { allowUnknown: true });
+      if (!isValid.error) {
+        webNamespace.to(`downloadFile${socket.device._id}`).emit(EVENT.WEB_EVENT_FILE_PROGRESS, data);
+      }
+    });
+
+    socket.on(EVENT.APP_LISTENER_PLAYLIST_PROGRESS, (data) => {
+      console.log(data);
+      const isValid = progressSchema.validate(data, { allowUnknown: true });
+      if (!isValid.error) {
+        webNamespace.to(`downloadPlaylist${socket.device._id}`).emit(EVENT.WEB_EVENT_PLAYLIST_PROGRESS, data);
+      }
+    });
+
     socket.on('disconnect', () => {
       changeStatusDevice(socket, false);
       delete onlineDevices[socket.device._id];
@@ -96,7 +130,6 @@ module.exports = cms => {
   });
 
   webNamespace.on('connection', function (socket) {
-
     socket.on(EVENT.WEB_LISTENER_GET_ONLINE_DEVICE, () => {
       socket.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
     });
@@ -104,6 +137,40 @@ module.exports = cms => {
     socket.on(EVENT.WEB_LISTENER_VIEW_DEVICE, deviceId => {
       socket.leaveAll();
       socket.join(`files${deviceId}`);
+    });
+
+    socket.on(EVENT.WEB_LISTENER_PUSH_FILE_TO_DEVICE, (deviceId, files, fn) => {
+      const deviceSocket = onlineDevices[deviceId];
+      if (deviceSocket) {
+        socket.join(`downloadFile${deviceId}`);
+        Content.find({ path: { $in: files } })
+          .then((res) => {
+            deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_FILE, res);
+            fn(null, res);
+          })
+          .catch(err => {
+            fn(err);
+          });
+      } else {
+        fn('device offfline');
+      }
+
+    });
+    socket.on(EVENT.WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE, (deviceId, playlistId, fn) => {
+      const deviceSocket = onlineDevices[deviceId];
+      if (deviceSocket) {
+        socket.join(`downloadPlaylist${deviceId}`);
+        Playlist.findById(playlistId).populate('content.media').populate('device').then(res => {
+          const pushData = _.pick(res, ['content', 'id', 'name']);
+          deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_PLAYLIST, pushData);
+          fn(null, pushData);
+        }).catch(err => {
+          fn(err);
+        });
+      } else {
+        fn('device offfline');
+      }
+
     });
 
     socket.on(EVENT.WEB_LISTENER_GET_LIST_FILE, (deviceId, callbackOnViewDevice) => {

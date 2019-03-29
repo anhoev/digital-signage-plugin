@@ -232,7 +232,7 @@
       this.getDevices();
     },
     beforeDestroy() {
-      this.socket && this.socket.close();
+      this.$options.socket && this.$options.socket.close();
     }
   };
 </script>

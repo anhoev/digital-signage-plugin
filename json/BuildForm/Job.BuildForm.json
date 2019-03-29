@@ -1,0 +1,54 @@
+{
+  "_id": "5c9dbdeaac13610ffe073423",
+  "__v": 0,
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5c9dbe71ac13610ffe073426",
+      "schemaType": "string",
+      "key": "type",
+      "type": "input@select",
+      "optionsType": "onlyValue",
+      "options": [
+        "pushFile",
+        "pushPlaylist"
+      ]
+    },
+    {
+      "_id": "5c9dbe71ac13610ffe073425",
+      "schemaType": "string",
+      "key": "status",
+      "type": "input@select",
+      "optionsType": "onlyValue",
+      "options": [
+        "finish",
+        "running",
+        "fail"
+      ]
+    },
+    {
+      "_id": "5c9dbe71ac13610ffe073424",
+      "schemaType": "objectId",
+      "key": "device",
+      "ref": "Device",
+      "type": "ref-select",
+      "labelProp": "name"
+    },
+    {
+      "_id": "5c9dbe80ac13610ffe073427",
+      "schemaType": "date",
+      "key": "begin",
+      "type": "input@datetime-local"
+    },
+    {
+      "_id": "5c9dd29a14a14016d8b0f435",
+      "schemaType": "date",
+      "key": "end",
+      "type": "input@datetime-local"
+    }
+  ],
+  "id": "5c9dbdeaac13610ffe073423",
+  "name": "Job",
+  "tabs": [],
+  "type": "Collection"
+}

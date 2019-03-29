@@ -1,10 +1,10 @@
 <template>
-    <v-app id="inspire">
-        <v-toolbar color="indigo" dark="" fixed="" app="">
-            <v-btn icon="" v-show="stack.length>=1" @click.prevent="goBack">
+    <div>
+        <v-layout style="background-color: #3f51b5!important; color: #fff" row="" center="">
+            <v-btn icon="" v-show="stack.length>=1" @click.prevent="goBack" style="color: #fff">
                 <v-icon>arrow_back</v-icon>
             </v-btn>
-            <v-btn icon="" @click="getDirectory">
+            <v-btn icon="" @click="getDirectory" style="color: #fff">
                 <v-icon>cached</v-icon>
             </v-btn>
             <v-toolbar-title>Digital Sinage</v-toolbar-title>
@@ -16,28 +16,26 @@
             <v-btn @click="dialogUploadFile=true">
                 Upload file
             </v-btn>
-        </v-toolbar>
-        <v-content>
-            <v-container fluid="" fill-height="">
-                <v-layout>
-                    <v-flex md8="">
-                        <v-breadcrumbs :items="breadCrumbs" divider="-">
-                            <template v-slot:item="{item}">
-                                <div>{{ item }}</div>
-                            </template>
-                            <template v-slot:divider="">
-                                <v-icon>chevron_right</v-icon>
-                            </template>
-                        </v-breadcrumbs>
-                        <folder-renderer v-if="current" :items="current.children" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
-                    </v-flex>
-                    <v-flex md4="">
-                        <device-list @open-dialog="dialogPushToDevice=true" :selected="selected" @remove-item="removeSelected">
-                        </device-list>
-                    </v-flex>
-                </v-layout>
-            </v-container>
-        </v-content>
+        </v-layout>
+        <v-container fluid="" fill-height="">
+            <v-layout>
+                <v-flex md8="">
+                    <v-breadcrumbs :items="breadCrumbs" divider="-">
+                        <template v-slot:item="{item}">
+                            <div>{{ item }}</div>
+                        </template>
+                        <template v-slot:divider="">
+                            <v-icon>chevron_right</v-icon>
+                        </template>
+                    </v-breadcrumbs>
+                    <folder-renderer v-if="current" :items="current.children" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
+                </v-flex>
+                <v-flex md4="">
+                    <device-list @open-dialog="dialogPushToDevice=true" :selected="selected" @remove-item="removeSelected">
+                    </device-list>
+                </v-flex>
+            </v-layout>
+        </v-container>
         <v-dialog v-model="dialogPushToDevice" width="500">
             <v-card>
                 <v-card-title class="headline grey lighten-2" primary-title="">
@@ -45,22 +43,40 @@
                 </v-card-title>
                 <v-list subheader="">
 
-                    <v-list-tile v-for="(item, index) in devices" :key="item.path" class="pa-2">
+                    <v-radio-group v-model="selectedDevices" style="width: 100%" class="radio-group">
+                        <v-list-tile v-for="(item, index) in devices" :key="item.path" class="pa-2">
 
-                        <v-list-tile-content>
-                            <v-list-tile-title>name: {{item['device-name']}}</v-list-tile-title>
-                            <v-list-tile-sub-title>model: {{item.model}}</v-list-tile-sub-title>
+                            <v-list-tile-content>
+                                <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
+                                <v-list-tile-sub-title>model: {{item.model}}</v-list-tile-sub-title>
 
 
-                        </v-list-tile-content>
+                            </v-list-tile-content>
 
-                        <v-list-tile-action>
-                            <v-checkbox @change="changeDevice($event, item.token)"></v-checkbox>
-                        </v-list-tile-action>
-                    </v-list-tile>
+                            <v-list-tile-action>
+                                <v-radio :value="item._id"></v-radio>
+                            </v-list-tile-action>
+                        </v-list-tile>
+
+                    </v-radio-group>
                 </v-list>
                 <v-divider></v-divider>
+                <v-list two-line="" subheader="" v-if="progress &amp;&amp; progress.length>0">
+                    <v-list-tile v-for="item in progress" :key="item.path" avatar="" class="py-2" @click="">
+                        <v-list-tile-avatar>
+                            <i class="far fa-file grid-icon"></i>
+                        </v-list-tile-avatar>
+                        <v-list-tile-content>
+                            <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
+                            <v-list-tile-sub-title>
 
+                                <div style="width: 80%; height: 10px; border-radius: 5px; background: #ddd; overflow: hidden">
+                                    <div style="height: 100%; background-color: #03a9f4" :style="{width: item.progress*100 + '%'}"></div>
+                                </div>
+                            </v-list-tile-sub-title>
+                        </v-list-tile-content>
+                    </v-list-tile>
+                </v-list>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="primary" flat="" @click="pushNotify">
@@ -79,10 +95,14 @@
                     <input type="file" ref="file">
                 </v-card-text>
                 <v-divider></v-divider>
-
+                <v-card-text>
+                    <div style="width: 100%; height: 10px; border-radius: 5px; background: #ddd; overflow: hidden">
+                        <div style="height: 100%; background-color: #03a9f4" :style="{width: uploadProgress*100 + '%'}"></div>
+                    </div>
+                </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="primary" flat="" @click="uploadFile(); dialogUploadFile = false">
+                    <v-btn color="primary" flat="" @click="uploadFile();">
                         Upload
                     </v-btn>
                 </v-card-actions>
@@ -107,7 +127,7 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-    </v-app>
+    </div>
 </template>
 <script>
 "use strict";
@@ -116,6 +136,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+
+var _socket = _interopRequireDefault(require("socket.io-client"));
+
+var _axios = _interopRequireDefault(require("axios"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var _default = {
   name: 'App',
 
@@ -131,7 +158,9 @@ var _default = {
       dialogCreateFolder: false,
       dialogUploadFile: false,
       devices: [],
-      selectedDevices: []
+      selectedDevices: null,
+      progress: [],
+      uploadProgress: 0
     };
   },
 
@@ -148,19 +177,16 @@ var _default = {
     }
 
   },
-  methods: {
-    changeDevice(event, token) {
-      if (event === true) {
-        const isExist = this.selectedDevices.includes(token);
-
-        if (!isExist) {
-          this.selectedDevices.push(token);
-        }
-      } else {
-        this.selectedDevices = this.selectedDevices.filter(i => i !== token);
+  watch: {
+    dialogPushToDevice(value) {
+      if (!value) {
+        this.progress = [];
+        this.$options.socket.emit('WEB_LISTENER_LEAVE_PROGRESS');
       }
-    },
+    }
 
+  },
+  methods: {
     getDevices() {
       fetch(cms.baseUrl + 'digital/devices').then(i => i.json()).then(res => {
         this.devices = res.data;
@@ -214,10 +240,25 @@ var _default = {
     uploadFile() {
       const data = new FormData();
       data.append('video', this.$refs.file.files[0]);
-      fetch(cms.baseUrl + `digital/video/upload?toPath=${this.current.path}`, {
-        method: 'POST',
-        body: data
-      }).then(res => this.getDirectory());
+      console.log(_axios.default.get);
+
+      _axios.default.post(cms.baseUrl + `digital/video/upload?toPath=${this.current.path}`, data, {
+        onUploadProgress: ({
+          loaded,
+          total
+        }) => {
+          this.uploadProgress = loaded / total;
+          console.log(this.uploadProgress);
+        }
+      }).then(res => {
+        this.getDirectory();
+        this.dialogUploadFile = false;
+        this.uploadProgress = 0;
+      }); // fetch(cms.baseUrl + `digital/video/upload?toPath=${this.current.path}`, {
+      //   method: 'POST',
+      //   body: data
+      // });
+
     },
 
     newFolder() {
@@ -235,22 +276,12 @@ var _default = {
     },
 
     pushNotify() {
-      if (this.selectedDevices.length === 0) {
+      if (!this.selectedDevices) {
         return alert('please select one device');
       }
 
-      fetch(cms.baseUrl + 'digital/devices/push', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json, text/plain, */*',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          files: this.selected.map(item => item.path),
-          token: this.selectedDevices
-        })
-      }).then(() => {
-        this.dialogPushToDevice = false;
+      this.$options.socket.emit('WEB_LISTENER_PUSH_FILE_TO_DEVICE', this.selectedDevices, this.selected.map(i => i.path), (err, data) => {
+        console.log(err, data);
       });
     },
 
@@ -273,6 +304,14 @@ var _default = {
 
     removeSelected(item) {
       this.selected = this.selected.filter(i => i !== item);
+    },
+
+    connectSocket() {
+      this.$options.socket = _socket.default.connect(`ws://${location.hostname}:8888/file-manager-web`);
+      console.log('connect');
+      this.$options.socket.on('WEB_EVENT_FILE_PROGRESS', res => {
+        this.progress = res;
+      });
     }
 
   },
@@ -280,11 +319,14 @@ var _default = {
   mounted() {
     this.getDirectory();
     this.getDevices();
+    this.connectSocket();
   }
 
 };
 exports.default = _default;
 </script> 
-<style scoped>
-
+<style>
+    .radio-group .v-input__control {
+        width: 100%
+    }
 </style>

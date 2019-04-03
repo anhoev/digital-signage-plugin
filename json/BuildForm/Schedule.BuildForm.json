@@ -1,0 +1,76 @@
+{
+  "_id": "5ca3274396a316f1ac376c96",
+  "__v": 0,
+  "title": "name",
+  "type": "Collection",
+  "name": "Schedule",
+  "tabs": [],
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5ca3291a96a316f1ac376c99",
+      "schemaType": "string",
+      "key": "name",
+      "type": "input"
+    },
+    {
+      "_id": "5ca3291a96a316f1ac376c98",
+      "schemaType": "array",
+      "key": "weekdaySchedule",
+      "type": "tableArray",
+      "fields": [
+        {
+          "schemaType": "array",
+          "key": "weekdays",
+          "fields": [
+            {
+              "schemaType": "string"
+            }
+          ],
+          "type": "input@multiSelect",
+          "optionsType": "onlyValue",
+          "options": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ]
+        },
+        {
+          "schemaType": "string",
+          "key": "from",
+          "type": "input"
+        },
+        {
+          "schemaType": "string",
+          "key": "to",
+          "default": "",
+          "type": "input"
+        },
+        {
+          "schemaType": "objectId",
+          "key": "playlist",
+          "ref": "Playlist",
+          "autopopulate": true,
+          "type": "ref-select",
+          "labelProp": "name"
+        }
+      ]
+    },
+    {
+      "_id": "5ca33e00e4d5bcf3832aa4b3",
+      "schemaType": "virtual",
+      "key": "currentPlaylist",
+      "type": "computedField",
+      "fn": {
+        "_code_": "module.exports = function() {\n  const weekdayArr = [\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"];\n  const now = new Date();\n  for (let schedule of this.weekdaySchedule) {\n    if (schedule.weekdays && schedule.weekdays.includes(weekdayArr[now.getDay()])) {\n      return schedule.playlist ? schedule.playlist: '';\n    }\n  }\n}",
+        "_code_type_": "commonJs"
+      }
+    }
+  ],
+  "alwaysLoad": true,
+  "id": "5ca3274396a316f1ac376c96"
+}

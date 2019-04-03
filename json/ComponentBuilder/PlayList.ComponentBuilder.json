@@ -9,5 +9,7 @@
   ],
   "renderToRoute": "playlist",
   "isProduction": true,
+  "renderInIframe": false,
+  "renderInAdminPage": true,
   "id": "5c99a893897b2f2943fb0823"
 }

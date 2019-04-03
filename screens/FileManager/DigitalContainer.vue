@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-layout style="background-color: #3f51b5!important; color: #fff" row center>
+        <v-layout style="background-color: #3f51b5!important; color: #fff" row center px-3>
             <v-btn icon v-show="stack.length>=1" @click.prevent="goBack" style="color: #fff">
                 <v-icon>arrow_back</v-icon>
             </v-btn>
@@ -20,160 +20,72 @@
         <v-container fluid fill-height>
             <v-layout>
                 <v-flex md8>
-                    <v-breadcrumbs :items="breadCrumbs" divider="-">
-                        <template v-slot:item="{item}">
-                            <div>{{ item }}</div>
-                        </template>
-                        <template v-slot:divider>
-                            <v-icon>chevron_right</v-icon>
-                        </template>
-                    </v-breadcrumbs>
+                    <v-layout>
+                        <v-flex md9>
+                            <v-breadcrumbs :items="breadCrumbs" divider="-">
+                                <template v-slot:item="{item}">
+                                    <a href="#" @click.prevent="popTo(item.index)"
+                                       v-if="item.index!==breadCrumbs.length-1" class="bread-crumb-section">{{ item.name
+                                        }}</a>
+                                    <div v-else>{{ item.name }}</div>
+                                </template>
+                                <template v-slot:divider>
+                                    <v-icon>chevron_right</v-icon>
+                                </template>
+                            </v-breadcrumbs>
+                        </v-flex>
+                        <v-flex md3 center justify-end>
+                            <v-btn fab dark :color="layout==='list' ? 'teal':'grey'" @click="layout='list'">
+                                <v-icon dark>list</v-icon>
+                            </v-btn>
+                            <v-btn fab dark :color="layout==='grid' ? 'teal':'grey'" @click="layout='grid'">
+                                <v-icon dark>widgets</v-icon>
+                            </v-btn>
+                        </v-flex>
+                    </v-layout>
                     <folder-renderer
-                            v-if="current" :items="current.children" @select="select"
+                            :layout="layout"
+                            v-if="current"
+                            :items="current.children"
+                            @select="select"
                             @remove-file="removeFile"
                             @remove-folder="removeFolder"
                             @select-file="selectFile"></folder-renderer>
                 </v-flex>
                 <v-flex md4>
-                    <device-list @open-dialog="dialogPushToDevice=true"
-                                 :selected="selected"
-                                 @remove-item="removeSelected"
+                    <device-list
+                            @open-dialog="dialogPushToDevice=true"
+                            :selected="selected"
+                            @remove-item="removeSelected"
                     >
                     </device-list>
                 </v-flex>
             </v-layout>
         </v-container>
         <v-dialog v-model="dialogPushToDevice" width="500">
-            <v-card>
-                <v-card-title
-                        class="headline grey lighten-2"
-                        primary-title
-                >
-                    Push to device
-                </v-card-title>
-                <v-list subheader>
-
-                    <v-radio-group v-model="selectedDevices" style="width: 100%" class="radio-group">
-                        <v-list-tile
-                                v-for="(item, index) in devices"
-                                :key="item.path"
-                                class="pa-2"
-                        >
-
-                            <v-list-tile-content>
-                                <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
-                                <v-list-tile-sub-title>model: {{item.model}}</v-list-tile-sub-title>
-
-
-                            </v-list-tile-content>
-
-                            <v-list-tile-action>
-                                <v-radio
-                                        :value="item._id"
-                                ></v-radio>
-                            </v-list-tile-action>
-                        </v-list-tile>
-
-                    </v-radio-group>
-                </v-list>
-                <v-divider></v-divider>
-                <v-list two-line subheader v-if="progress && progress.length>0">
-                    <v-list-tile
-                            v-for="item in progress"
-                            :key="item.path"
-                            avatar
-                            class="py-2"
-                            @click=""
-                    >
-                        <v-list-tile-avatar>
-                            <i class="far fa-file grid-icon"></i>
-                        </v-list-tile-avatar>
-                        <v-list-tile-content>
-                            <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
-                            <v-list-tile-sub-title>
-
-                                <div style="width: 80%; height: 10px; border-radius: 5px; background: #ddd; overflow: hidden">
-                                    <div style="height: 100%; background-color: #03a9f4"
-                                         :style="{width: item.progress*100 + '%'}"></div>
-                                </div>
-                            </v-list-tile-sub-title>
-                        </v-list-tile-content>
-                    </v-list-tile>
-                </v-list>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                            color="primary"
-                            flat
-                            @click="pushNotify"
-                    >
-                        PUSH
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
+            <push-to-device
+                    v-if="dialogPushToDevice"
+                    :online-devices="onlineDevices"
+                    :devices="devices"
+                    @push-notify="pushNotify"
+            />
         </v-dialog>
         <v-dialog
                 v-model="dialogUploadFile"
                 width="300"
         >
-            <v-card>
-                <v-card-title
-                        class="headline grey lighten-2"
-                        primary-title
-                >
-                    UploadFile
-                </v-card-title>
-
-                <v-card-text>
-                    <input type="file" ref="file" />
-                </v-card-text>
-                <v-divider></v-divider>
-                <v-card-text>
-                    <div style="width: 100%; height: 10px; border-radius: 5px; background: #ddd; overflow: hidden">
-                        <div style="height: 100%; background-color: #03a9f4"
-                             :style="{width: uploadProgress*100 + '%'}"></div>
-                    </div>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                            color="primary"
-                            flat
-                            @click="uploadFile();"
-                    >
-                        Upload
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
+            <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress"></upload-file>
         </v-dialog>
         <v-dialog
                 v-model="dialogCreateFolder"
                 width="300"
         >
-            <v-card>
-                <v-card-title
-                        class="headline grey lighten-2"
-                        primary-title
-                >
-                    CreateFolder
-                </v-card-title>
-
-                <v-card-text>
-                    <v-text-field label="Folder Name" v-model="folderName"></v-text-field>
-                </v-card-text>
-                <v-divider></v-divider>
-
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                            color="primary"
-                            flat
-                            @click="newFolder(); dialogCreateFolder=false"
-                    >
-                        Create
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
+            <create-folder :key="dialogCreateFolder" @create="newFolder"></create-folder>
+        </v-dialog>
+        <v-dialog v-model="trackProgressModel" width="1200">
+            <div style="height: 90vh; background: #fff; overflow: auto">
+                <progress-tracking :key="trackProgressModel" />
+            </div>
         </v-dialog>
     </div>
 </template>
@@ -181,6 +93,8 @@
 <script>
   import io from 'socket.io-client';
   import axios from 'axios';
+
+  const KEY_LAYOUT = '__layout_digital';
 
   export default {
     name: 'App',
@@ -196,19 +110,29 @@
         dialogCreateFolder: false,
         dialogUploadFile: false,
         devices: [],
-        selectedDevices: null,
+        onlineDevices: [],
+        selectedDevices: [],
         progress: [],
-        uploadProgress: 0
+        uploadProgress: 0,
+        layout: localStorage.getItem(KEY_LAYOUT) || 'list',
+        trackProgressModel: false
       };
     },
     computed: {
       breadCrumbs() {
         console.log(this.current);
+        const home = {
+          name: 'home',
+          index: 0
+        };
         if (!this.current || !this.current.path) {
           // console.log('hello');
-          return ['root'];
+          return [home];
         } else {
-          return ['root', ...this.current.path.split('/')];
+          return [home, ...this.current.path.split('/').map((item, index) => ({
+            name: item,
+            index: index + 1
+          }))];
         }
       }
     },
@@ -218,9 +142,17 @@
           this.progress = [];
           this.$options.socket.emit('WEB_LISTENER_LEAVE_PROGRESS');
         }
+      },
+      layout(value) {
+        localStorage.setItem(KEY_LAYOUT, value);
       }
     },
     methods: {
+      popTo(number) {
+        while (this.breadCrumbs.length - 1 > number) {
+          this.current = this.stack.pop();
+        }
+      },
       getDevices() {
         fetch(cms.baseUrl + 'digital/devices')
           .then(i => i.json())
@@ -268,10 +200,12 @@
           this.current = this.stack.pop();
         }
       },
-      uploadFile() {
+      uploadFile(files) {
+        if (!files) {
+          return alert('file is required');
+        }
         const data = new FormData();
-        data.append('video', this.$refs.file.files[0]);
-        console.log(axios.get);
+        data.append('video', files);
         axios.post(cms.baseUrl + `digital/video/upload?toPath=${this.current.path}`, data, {
           onUploadProgress: ({ loaded, total }) => {
             this.uploadProgress = loaded / total;
@@ -288,7 +222,7 @@
         //   body: data
         // });
       },
-      newFolder() {
+      newFolder(folderName) {
         fetch(cms.baseUrl + 'digital/video/new-folder', {
           method: 'POST',
           headers: {
@@ -297,16 +231,39 @@
           },
           body: JSON.stringify({
             path: this.current.path,
-            name: this.folderName
+            name: folderName
           })
-        }).then(res => this.getDirectory());
+        }).then(res => {
+          this.dialogCreateFolder = false;
+          this.getDirectory();
+        }).catch(err => {
+          this.dialogCreateFolder = false;
+        });
       },
-      pushNotify() {
-        if (!this.selectedDevices) {
+      pushNotify(selectedDevices) {
+        if (!selectedDevices) {
           return alert('please select one device');
         }
-        this.$options.socket.emit('WEB_LISTENER_PUSH_FILE_TO_DEVICE', this.selectedDevices, this.selected.map(i => i.path), (err, data) => {
-          console.log(err, data);
+        this.$options.socket.emit('WEB_LISTENER_PUSH_FILE_TO_DEVICE', selectedDevices, this.selected.map(i => i.path), (err, data) => {
+          // if (Array.isArray(err) && err.length > 0) {
+          //   alert(err.join(','));
+          // } else {
+          this.$confirm(`Push to device success${err ? `, number of error: ${err.length}` : ''}`, {
+            buttons: [
+              {
+                text: 'track progress',
+                value: true,
+                color: 'primary',
+                onClick: () => this.trackProgressModel = true
+              },
+              {
+                text: 'close',
+                value: true,
+                color: 'primary'
+              }
+            ]
+          });
+          // }
         });
       },
       removeFile(item) {
@@ -330,10 +287,20 @@
       connectSocket() {
         this.$options.socket = io.connect(`ws://${location.hostname}:8888/file-manager-web`);
         console.log('connect');
+
         this.$options.socket.on('WEB_EVENT_FILE_PROGRESS', res => {
           this.progress = res;
         });
+        this.$options.socket.on('connect', () => {
+          this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
+        });
+        this.$options.socket.on('WEB_EVENT_LIST_ONLINE_DEVICE', (list) => {
+          this.onlineDevices = list;
+        });
       }
+    },
+    beforeDestroy() {
+      this.$options.socket && this.$options.socket.close();
     },
     mounted() {
       this.getDirectory();
@@ -346,5 +313,9 @@
 <style>
     .radio-group .v-input__control {
         width: 100%
+    }
+
+    .bread-crumb-section {
+        text-decoration: none;
     }
 </style>

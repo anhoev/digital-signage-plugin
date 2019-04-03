@@ -27,6 +27,12 @@
         "online",
         "offline"
       ]
+    },
+    {
+      "_id": "5ca4413b110a20140d817e49",
+      "schemaType": "string",
+      "key": "ip",
+      "type": "input"
     }
   ],
   "id": "5c9ca78b2fda403ce07188d2",

@@ -1,51 +1,12 @@
 <template>
     <v-layout row="" wrap="" style="height: 100%">
         <v-dialog v-model="dialogPushToDevice" width="500">
-            <v-card>
-                <v-card-title class="headline grey lighten-2" primary-title="">
-                    Push to device
-                </v-card-title>
-                <v-list subheader="" style="width: 100%">
-                    <v-radio-group v-model="selectedDevices" style="width: 100%" class="radio-group">
-                        <v-list-tile v-for="(item, index) in devices" :key="item.path" class="pa-2" fill-width="">
-
-                            <v-list-tile-content>
-                                <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
-                                <v-list-tile-sub-title>model: {{item.model}}</v-list-tile-sub-title>
-
-
-                            </v-list-tile-content>
-
-                            <v-list-tile-action>
-                                <v-radio :value="item._id"></v-radio>
-                            </v-list-tile-action>
-                        </v-list-tile>
-                    </v-radio-group>
-                </v-list>
-                <v-divider></v-divider>
-                <v-list two-line="" subheader="" v-if="progress &amp;&amp; progress.length>0">
-                    <v-list-tile v-for="item in progress" :key="item.path" avatar="" class="py-2" @click="">
-                        <v-list-tile-avatar>
-                            <i class="far fa-file grid-icon"></i>
-                        </v-list-tile-avatar>
-                        <v-list-tile-content>
-                            <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
-                            <v-list-tile-sub-title>
-
-                                <div style="width: 80%; height: 10px; border-radius: 5px; background: #ddd; overflow: hidden">
-                                    <div style="height: 100%; background-color: #03a9f4" :style="{width: item.progress*100 + '%'}"></div>
-                                </div>
-                            </v-list-tile-sub-title>
-                        </v-list-tile-content>
-                    </v-list-tile>
-                </v-list>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="primary" flat="" @click="pushNotify">
-                        PUSH
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
+            <push-to-device :devices="devices" :online-devices="onlineDevices" @push-notify="pushNotify">
+        </push-to-device></v-dialog>
+        <v-dialog v-model="trackProgressModel" width="1200">
+            <div style="height: 90vh; background: #fff; overflow: auto">
+                <progress-tracking v-if="trackProgressModel">
+            </progress-tracking></div>
         </v-dialog>
         <v-flex md9="">
             <v-container fluid="">
@@ -69,31 +30,13 @@
                             </v-list>
                         </v-card>
                     </v-flex>
-                    <!--<v-flex shrink md6>-->
-                    <!--<v-card style="width: 500px">-->
-                    <!--<v-list>-->
-                    <!--<v-list-tile-->
-                    <!--v-for="item in selectedPlaylist.device"-->
-                    <!--:key="item.path"-->
-                    <!--class="py-2"-->
-                    <!--@click=""-->
-                    <!--&gt;-->
-                    <!--<v-list-tile-content>-->
-                    <!--<v-list-tile-title>name: {{item['name']}}</v-list-tile-title>-->
-                    <!--<v-list-tile-sub-title>os: {{item['os']}}</v-list-tile-sub-title>-->
-                    <!--</v-list-tile-content>-->
-                    <!--</v-list-tile>-->
-                    <!--</v-list>-->
-                    <!--</v-card>-->
-                    <!--</v-flex>-->
                 </v-layout>
             </v-container>
-
         </v-flex>
         <v-flex md3="" style="border-left: 1px solid #ddd;">
             <v-layout row="" wrap="">
                 <v-list dense="" style="width: 100%">
-                    <v-list-tile v-for="item in playlist" @click="selectItem(item)" :class="{'selected-playlist':isSelected(item)}">
+                    <v-list-tile v-for="item in playlist" @click="selectItem(item)" :key="item._id" :class="{'selected-playlist':isSelected(item)}">
                         <v-list-tile-content>
                             <v-list-tile-title>{{item.name}}</v-list-tile-title>
                         </v-list-tile-content>
@@ -102,8 +45,6 @@
             </v-layout>
         </v-flex>
     </v-layout>
-
-
 </template>
 <script>
 "use strict";
@@ -127,14 +68,20 @@ var _default = {
     playlist: [],
     selectedPlaylist: null,
     devices: [],
-    selectedDevices: null,
+    selectedDevices: [],
+    onlineDevices: [],
     dialogPushToDevice: false,
+    trackProgressModel: false,
     progress: []
   }),
   props: {
     source: String
   },
   methods: {
+    isOnline(device) {
+      return this.onlineDevices.indexOf(device._id) > -1;
+    },
+
     isSelected(item) {
       if (!this.selectedPlaylist) {
         return false;
@@ -153,8 +100,6 @@ var _default = {
       } else {
         this.selectedDevices = this.selectedDevices.filter(i => i !== token);
       }
-
-      console.log(this.selectedDevices);
     },
 
     getPlaylist() {
@@ -169,9 +114,20 @@ var _default = {
       });
     },
 
-    pushNotify() {
-      this.$options.socket.emit('WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE', this.selectedDevices, this.selectedPlaylist._id, a => {
-        console.log(a);
+    pushNotify(selectedDevices) {
+      this.$options.socket.emit('WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE', selectedDevices, this.selectedPlaylist._id, err => {
+        this.$confirm(`Push to device success${err ? `, number of error: ${err.length}` : ''}`, {
+          buttons: [{
+            text: 'track progress',
+            value: true,
+            color: 'primary',
+            onClick: () => this.trackProgressModel = true
+          }, {
+            text: 'close',
+            value: true,
+            color: 'primary'
+          }]
+        });
       });
     },
 
@@ -188,6 +144,12 @@ var _default = {
       this.$options.socket.on('WEB_EVENT_PLAYLIST_PROGRESS', res => {
         this.progress = res;
       });
+      this.$options.socket.on('connect', () => {
+        this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
+      });
+      this.$options.socket.on('WEB_EVENT_LIST_ONLINE_DEVICE', list => {
+        this.onlineDevices = list;
+      });
     }
 
   },
@@ -196,6 +158,10 @@ var _default = {
     this.getPlaylist();
     this.getDevices();
     this.connectSocket();
+  },
+
+  beforeDestroy() {
+    this.$options.socket && this.$options.socket.close();
   }
 
 };
@@ -206,6 +172,12 @@ exports.default = _default;
   color: #fff; }
   .selected-playlist .v-list__tile__title {
     transition: none !important; }
+
+.online {
+  color: #40bf5e; }
+
+.offline {
+  color: #c14444; }
 </style>
 <style>
     .radio-group .v-input__control {

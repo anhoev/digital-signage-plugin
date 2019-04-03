@@ -8,7 +8,8 @@
       "schemaType": "string",
       "key": "token",
       "type": "input",
-      "flex": "md4"
+      "flex": "md4",
+      "unique": false
     },
     {
       "_id": "5c6823c61d616c3dda444c6d",

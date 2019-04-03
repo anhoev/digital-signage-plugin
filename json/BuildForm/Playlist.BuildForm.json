@@ -25,6 +25,29 @@
           "schemaType": "number",
           "key": "duration",
           "type": "input@number"
+        },
+        {
+          "schemaType": "string",
+          "key": "effect",
+          "type": "input@select",
+          "optionsType": "onlyValue",
+          "options": [
+            "fadeIn",
+            "slideInUp",
+            "slideInDown",
+            "slideInLeft",
+            "slideInRight",
+            "bounceIn",
+            "bounceInUp",
+            "bounceInDown",
+            "bounceInLeft",
+            "bounceInRight",
+            "zoomIn",
+            "zoomInDown",
+            "zoomInUp",
+            "zoomInLeft",
+            "zoomInRight"
+          ]
         }
       ],
       "type": "tableArray"
@@ -33,5 +56,6 @@
   "id": "5c999997944df525aef1939f",
   "tabs": [],
   "name": "Playlist",
-  "type": "Collection"
+  "type": "Collection",
+  "alwaysLoad": true
 }

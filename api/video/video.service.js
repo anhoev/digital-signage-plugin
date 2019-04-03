@@ -74,7 +74,7 @@ exports.handlerUpload = async function (outputPatch, pathFile) {
 };
 
 exports.getDirectoryTree = function () {
-  return dirtree(path.join(config.imageStore), { exclude: /\.parts/ }, onEachFile, onEachFile);
+  return dirtree(path.join(config.imageStore), { exclude: /\.parts|(^|[\/\\])\./ }, onEachFile, onEachFile);
 };
 
 exports.newFolder = function (_path, name) {

@@ -7,7 +7,7 @@
       "component": "Playlist"
     }
   ],
-  "renderToRoute": "playlist",
+  "renderToRoute": "Push Playlist To Device",
   "isProduction": true,
   "renderInIframe": false,
   "renderInAdminPage": true,

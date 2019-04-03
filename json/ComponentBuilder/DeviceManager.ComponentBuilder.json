@@ -7,7 +7,7 @@
       "component": "DeviceManager"
     }
   ],
-  "renderToRoute": "devices",
+  "renderToRoute": "Device Manager",
   "isProduction": true,
   "renderInIframe": false,
   "renderInAdminPage": true,

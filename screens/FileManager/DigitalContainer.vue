@@ -114,7 +114,7 @@
         selectedDevices: [],
         progress: [],
         uploadProgress: 0,
-        layout: localStorage.getItem(KEY_LAYOUT) || 'grid',
+        layout: localStorage.getItem(KEY_LAYOUT) || 'list',
         trackProgressModel: false
       };
     },

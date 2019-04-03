@@ -7,7 +7,9 @@
       "component": "DigitalContainer"
     }
   ],
-  "renderToRoute": "file",
+  "renderToRoute": "test",
   "isProduction": true,
+  "renderInAdminPage": true,
+  "renderInIframe": false,
   "id": "5c93556549346c47b228c398"
 }

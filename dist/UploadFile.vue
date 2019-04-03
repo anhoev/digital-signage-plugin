@@ -15,7 +15,7 @@
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" flat="" @click="$emit('upload', $refs.file)">
+            <v-btn color="primary" flat="" @click="$emit('upload', $refs.file.files[0])">
                 Upload
             </v-btn>
         </v-card-actions>

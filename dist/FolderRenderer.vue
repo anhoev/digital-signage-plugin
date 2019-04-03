@@ -1,6 +1,6 @@
 <template>
-    <v-layout v-if="layout === 'grid'">
-        <v-flex md3="" v-for="item in items" pa-2="" style="position: relative" :key="item.path">
+    <v-layout v-if="layout === 'grid'" wrap="" row="">
+        <v-flex md2="" v-for="item in items" pa-2="" class="grid" :key="item.path">
             <v-card center="" style="cursor: pointer" @click.stop="$emit('select', item)" @dblclick="select(item)">
                 <v-flex center="" pa-4="" pt-5="" pb-2="">
                     <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>
@@ -126,13 +126,19 @@ var _default = {
 exports.default = _default;
 </script> 
 <style scoped>
+    .grid {
+        position: relative;
+        flex-basis: 20%;
+        max-width: 20%
+    }
+
     .grid-icon {
         font-size: 50px;
     }
 
 </style>
 <style>
-    .preview-image{
+    .preview-image {
         height: 50px;
         max-width: 70px;
     }

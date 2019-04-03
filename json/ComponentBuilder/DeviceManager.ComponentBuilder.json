@@ -9,5 +9,7 @@
   ],
   "renderToRoute": "devices",
   "isProduction": true,
+  "renderInIframe": false,
+  "renderInAdminPage": true,
   "id": "5c99f95e503e0333f52b8fb0"
 }

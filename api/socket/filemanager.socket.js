@@ -92,7 +92,8 @@ function changeStatusDevice(socket, status) {
   const data = {
     device: socket.device._id,
     date: new Date(),
-    type: status ? 'online' : 'offline'
+    type: status ? 'online' : 'offline',
+    ip: socket.handshake.address
   };
   ConnectionHistory.create(data);
   // Device.findOneAndUpdate({ _id: socket.device._id }, { online: status }).then(res => console.log(res)).catch(err => console.log(err));

@@ -40,9 +40,9 @@ let disStorageMultiple = multer.diskStorage({
     });
     const pathParts = path.format({
       dir: path.join(config.imageStore, '.parts'),
-      base: [...req.query.toPath.split(path.sep), splitExtNameFile(pathPartsMedia)].join('_')
+      base: [...req.query.toPath.split(path.sep), splitExtNameFile(pathPartsMedia)].filter(a => a).join('_')
     });
-    req.pathPar = pathParts
+    req.pathPar = pathParts;
 
     mkdirp(pathParts, function (err) {
       if (err) {

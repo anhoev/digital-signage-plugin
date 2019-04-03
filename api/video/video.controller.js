@@ -4,13 +4,10 @@ const fileService = require('../../common/services/file.service');
 const config = require('../../config/environment');
 const path = require('path');
 
-exports.detail = function (req, res) {
-  res.json({
-    success: 200
-  });
-};
-
 exports.upload = async function (req, res, next) {
+  if (Object.keys(req.files).length === 0) {
+    return res.status(400).json({ err: 'file is required' });
+  }
   const pathFile = path.join(config.imageStore, req.query.toPath || '', req.namebase);
   uploadService.handlerUpload(req.pathPar, pathFile)
     .then(err => {
@@ -59,39 +56,4 @@ exports.newFolder = async function (req, res, next) {
   } catch (e) {
     res.status(400).json({ err: e });
   }
-};
-
-exports.getDirectories = async function (req, res) {
-  const params = req.query;
-  let directoriesAfterSort;
-  let directories = await uploadService.list(params);
-  if (directories) {
-    directoriesAfterSort = fileService.sortDirectories(directories);
-  }
-  return res.json({
-    directories: directoriesAfterSort
-  });
-};
-
-exports.announce = async function (req, res) {
-  const registrationToken = 'eADtxI5Ucbo:APA91bElAdY13pXYq4v-W-GeyoUtZiodjmVL3JJtGCs4KaGYa4ahH7qB8Zoet8LlqqMf03jHeQ0gV-RAuDYmc-EF7Ncl9568kqD_gu2J_pyBCe7SUFPSnEFbFKLxJDON0cyN0zpRCxcz';
-  var payload = {
-    notification: {
-      title: 'Hello',
-      body: 'You ',
-      subtitle: 'title'
-    }
-  };
-
-  fileService.notify(registrationToken, payload).then(success => {
-    console.log('success', success);
-    res.json({
-      data: 'done'
-    });
-  }).catch(err => {
-    res.json({
-      data: 'fail'
-    });
-  });
-
 };

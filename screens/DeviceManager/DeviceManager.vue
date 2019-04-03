@@ -4,6 +4,7 @@
             <v-layout row wrap>
                 <v-flex shrink md12 v-if="error">
                     <v-card-title>{{error}}</v-card-title>
+                    <v-card-title v-if="lastOnline">last online: {{ lastOnline.date}}</v-card-title>
                 </v-flex>
                 <v-card-title v-if="connecting && !error">Connecting to device...
                 </v-card-title>
@@ -31,32 +32,38 @@
                         >
                             <v-card style="width: 100%">
                                 <v-list>
-                                    <v-list-tile
-                                            v-for="item in files"
-                                            :key="item.path"
-                                            avatar
-                                            class="py-2"
-                                            style="width: 100%"
-                                    >
-                                        <v-list-tile-avatar>
-                                            <i class="far fa-folder grid-icon"></i>
-                                        </v-list-tile-avatar>
-                                        <v-list-tile-content>
-                                            <v-list-tile-title>name: {{item}}</v-list-tile-title>
-                                        </v-list-tile-content>
-                                        <v-list-tile-action>
-                                            <v-btn icon ripple @click="deleteFile(item)">
-                                                <v-icon color="grey lighten-1">delete</v-icon>
-                                            </v-btn>
-                                        </v-list-tile-action>
-                                    </v-list-tile>
+                                    <template v-for="(item, index) in files">
+                                        <v-list-tile
+                                                :key="item"
+                                                avatar
+                                                class="py-2"
+                                                style="width: 100%"
+                                        >
+                                            <v-list-tile-avatar>
+                                                <i class="far fa-folder grid-icon"></i>
+                                            </v-list-tile-avatar>
+                                            <v-list-tile-content>
+                                                <v-list-tile-title>name: {{item}}</v-list-tile-title>
+                                                <v-list-tile-sub-title class="red--text"
+                                                                       v-if="isFileNotInAnyPlaylist(item)">
+                                                    This media is not in any playlist
+                                                </v-list-tile-sub-title>
+                                            </v-list-tile-content>
+                                            <v-list-tile-action>
+                                                <v-btn icon ripple @click="deleteFile(item)">
+                                                    <v-icon color="grey lighten-1">delete</v-icon>
+                                                </v-btn>
+                                            </v-list-tile-action>
+                                        </v-list-tile>
+                                        <v-divider v-if="index!==files.length-1" />
+                                    </template>
                                 </v-list>
                             </v-card>
                         </v-tab-item>
                         <v-tab-item>
                             <v-card style="width: 100%">
                                 <v-expansion-panel v-if="Array.isArray(playlist)">
-                                    <v-expansion-panel-content v-for="item in playlist">
+                                    <v-expansion-panel-content v-for="item in playlist" :key="item.name">
                                         <template v-slot:header class.native="pa-2">
                                             <v-list-tile
                                                     class="py-2"
@@ -79,23 +86,32 @@
                                                     </v-layout>
                                                 </v-list-tile-action>
                                             </v-list-tile>
+                                            <v-divider></v-divider>
                                         </template>
                                         <v-card>
                                             <v-list>
-                                                <v-list-tile
-                                                        v-for="cItem in item.content"
-                                                        avatar
-                                                        class="py-2"
-                                                        style="width: 100%"
+                                                <template v-for="(cItem, index) in item.content"
                                                 >
-                                                    <v-list-tile-avatar>
-                                                        <i class="far fa-folder grid-icon"></i>
-                                                    </v-list-tile-avatar>
-                                                    <v-list-tile-content>
-                                                        <v-list-tile-title>name: {{cItem.media.name}}
-                                                        </v-list-tile-title>
-                                                    </v-list-tile-content>
-                                                </v-list-tile>
+                                                    <v-list-tile
+                                                            avatar
+                                                            :key="cItem.media.path"
+                                                            class="py-2"
+                                                            style="width: 100%"
+                                                    >
+                                                        <v-list-tile-avatar>
+                                                            <i class="far fa-folder grid-icon"></i>
+                                                        </v-list-tile-avatar>
+                                                        <v-list-tile-content>
+                                                            <v-list-tile-title>name: {{cItem.media.name}}
+                                                            </v-list-tile-title>
+                                                            <v-list-tile-sub-title class="red--text"
+                                                                                   v-if="isFileNotExists(cItem.media.name + cItem.media.ext)">
+                                                                This file is not existed in device's storage
+                                                            </v-list-tile-sub-title>
+                                                        </v-list-tile-content>
+                                                    </v-list-tile>
+                                                    <v-divider v-if="index!==item.content.length-1"></v-divider>
+                                                </template>
                                             </v-list>
                                         </v-card>
                                     </v-expansion-panel-content>
@@ -110,6 +126,7 @@
             <v-list dense>
                 <v-list-tile
                         v-for="item in devices" @click="selectItem(item)"
+                        :key="item._id"
                         :class="{'selected-playlist':isSelected(item)}"
                 >
                     <v-list-tile-content>
@@ -142,7 +159,8 @@
       connecting: false,
       active: null,
       playlist: [],
-      onlineDevices: []
+      onlineDevices: [],
+      lastOnline: null
     }),
     props: {
       source: String
@@ -156,6 +174,14 @@
           return false;
         }
         return this.selectedDevices === item;
+      },
+      isFileNotInAnyPlaylist(name) {
+        return !this.playlist.some(playlist => {
+          return playlist.content.some(item => item.media.name + item.media.ext === name);
+        });
+      },
+      isFileNotExists(name) {
+        return !this.files.includes(name);
       },
       connectSocket() {
         this.$options.socket = io.connect(`ws://${location.hostname}:8888/file-manager-web`);
@@ -187,6 +213,9 @@
         this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', item._id, (err, files) => {
           if (err) {
             this.error = err;
+            cms.getModel('ConnectionHistory').findOne({ device: this.selectedDevices._id }).sort('-date').then(res => {
+              this.lastOnline = res;
+            });
           } else {
             this.files = files;
           }

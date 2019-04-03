@@ -4,6 +4,7 @@ const Device = cms.getModel('Device');
 const ConnectionHistory = cms.getModel('ConnectionHistory');
 const Content = cms.getModel('Content');
 const Playlist = cms.getModel('Playlist');
+const Job = cms.getModel('Job');
 
 const EVENT = {
   APP_ACTION_DELETE_FILE: 'APP_ACTION_DELETE_FILE',
@@ -15,6 +16,7 @@ const EVENT = {
   APP_EVENT_RECEIVE_PLAYLIST: 'APP_EVENT_RECEIVE_PLAYLIST',
   APP_LISTENER_FILE_PROGRESS: 'APP_LISTENER_FILE_PROGRESS',
   APP_LISTENER_PLAYLIST_PROGRESS: 'APP_LISTENER_PLAYLIST_PROGRESS',
+  APP_LISTENER_DOWNLOAD_FILE: 'APP_LISTENER_DOWNLOAD_FILE',
   WEB_LISTENER_DELETE_FILE: 'WEB_LISTENER_DELETE_FILE',
   WEB_LISTENER_GET_LIST_FILE: 'WEB_LISTENER_GET_LIST_FILE',
   WEB_LISTENER_GET_PLAYLIST: 'WEB_LISTENER_GET_PLAYLIST',
@@ -29,6 +31,8 @@ const EVENT = {
   WEB_LISTENER_GET_ONLINE_DEVICE: 'WEB_LISTENER_GET_ONLINE_DEVICE',
   WEB_LISTENER_PUSH_FILE_TO_DEVICE: 'WEB_LISTENER_PUSH_FILE_TO_DEVICE',
   WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE: 'WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE',
+  WEB_LISTENER_VIEW_PROGRESS: 'WEB_LISTENER_VIEW_PROGRESS',
+  WEB_LISTENER_CLOSE_PROGRESS: 'WEB_LISTENER_CLOSE_PROGRESS',
   ERROR: 'ERROR'
 };
 
@@ -59,7 +63,7 @@ const progressSchema = Joi.array().items(
   })
 );
 
-function socketAppMiddleware(socket, next) {
+function verifyTokenMiddleware(socket, next) {
   const token = socket.handshake.query.token;
   if (!token) {
     socket.disconnect();
@@ -99,33 +103,51 @@ module.exports = cms => {
   const webNamespace = cms.io.of('/file-manager-web');
   const onlineDevices = {};
 
-  appNamespace.use(socketAppMiddleware);
+
+  appNamespace.use(verifyTokenMiddleware);
   appNamespace.on('connection', function (socket) {
     onlineDevices[socket.device._id] = socket;
     webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
-
     changeStatusDevice(socket, true);
 
-    socket.on(EVENT.APP_LISTENER_FILE_PROGRESS, (data) => {
+    socket.on(EVENT.APP_LISTENER_FILE_PROGRESS, (jobId, data) => {
       const isValid = progressSchema.validate(data, { allowUnknown: true });
       if (!isValid.error) {
-        webNamespace.to(`downloadFile${socket.device._id}`).emit(EVENT.WEB_EVENT_FILE_PROGRESS, data);
+        Promise.all([
+          Job.findById(jobId),
+          Device.findById(socket.device._id)
+        ]).then(([job, device]) => {
+          webNamespace.to(`downloadFile`).emit(EVENT.WEB_EVENT_FILE_PROGRESS, { job, data, device });
+        });
       }
     });
 
-    socket.on(EVENT.APP_LISTENER_PLAYLIST_PROGRESS, (data) => {
-      console.log(data);
-      const isValid = progressSchema.validate(data, { allowUnknown: true });
-      if (!isValid.error) {
-        webNamespace.to(`downloadPlaylist${socket.device._id}`).emit(EVENT.WEB_EVENT_PLAYLIST_PROGRESS, data);
+    socket.on(EVENT.APP_LISTENER_DOWNLOAD_FILE, (jobId, status, type = 'file') => {
+      const updateData = {
+        status
+      };
+      if (status === 'finish' || status === 'fail') {
+        updateData.end = new Date();
       }
+      Job.findByIdAndUpdate(jobId, updateData, { new: true }).then(res => {
+        webNamespace.to(`downloadFile`).emit(EVENT.WEB_EVENT_FILE_PROGRESS, { job: res });
+      });
     });
 
     socket.on('disconnect', () => {
+      // update connection history
       changeStatusDevice(socket, false);
-      delete onlineDevices[socket.device._id];
-      webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
-      console.log('disconnected');
+      // if device have running job, update it to fail.
+      Job.findOneAndUpdate({ device: socket.device._id, status: 'running' }, { status: 'fail', end: new Date() }, { new: true })
+        .sort('-begin')
+        .then(res => {
+          // then response status to web client
+          if (res) {
+            webNamespace.to(`downloadFile`).emit(EVENT.WEB_EVENT_FILE_PROGRESS, { job: res });
+          }
+        });
+      delete onlineDevices[socket.device._id]; // remove from online devices
+      webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices)); // emit online devices to client
     });
   });
 
@@ -134,43 +156,66 @@ module.exports = cms => {
       socket.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
     });
 
+
     socket.on(EVENT.WEB_LISTENER_VIEW_DEVICE, deviceId => {
       socket.leaveAll();
       socket.join(`files${deviceId}`);
     });
 
-    socket.on(EVENT.WEB_LISTENER_PUSH_FILE_TO_DEVICE, (deviceId, files, fn) => {
-      const deviceSocket = onlineDevices[deviceId];
-      if (deviceSocket) {
-        socket.join(`downloadFile${deviceId}`);
-        Content.find({ path: { $in: files } })
-          .then((res) => {
-            deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_FILE, res);
-            fn(null, res);
-          })
-          .catch(err => {
-            fn(err);
-          });
-      } else {
-        fn('device offfline');
-      }
-
+    socket.on(EVENT.WEB_LISTENER_VIEW_PROGRESS, () => {
+      socket.join(`downloadFile`);
     });
-    socket.on(EVENT.WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE, (deviceId, playlistId, fn) => {
-      const deviceSocket = onlineDevices[deviceId];
-      if (deviceSocket) {
-        socket.join(`downloadPlaylist${deviceId}`);
-        Playlist.findById(playlistId).populate('content.media').populate('device').then(res => {
-          const pushData = _.pick(res, ['content', 'id', 'name']);
-          deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_PLAYLIST, pushData);
-          fn(null, pushData);
-        }).catch(err => {
-          fn(err);
-        });
-      } else {
-        fn('device offfline');
-      }
 
+    socket.on(EVENT.WEB_LISTENER_CLOSE_PROGRESS, () => {
+      socket.leave(`downloadFile`);
+    });
+
+    socket.on(EVENT.WEB_LISTENER_PUSH_FILE_TO_DEVICE, async (deviceIds, files, fn) => {
+      Promise.all(deviceIds.map(async deviceId => {
+        const deviceSocket = onlineDevices[deviceId];
+        if (deviceSocket) {
+          // socket.join(`downloadFile${deviceId}`);
+          try {
+            const content = await Content.find({ path: { $in: files } });
+            const job = await Job.create({ device: deviceId, begin: new Date(), type: 'pushFile', status: null });
+            deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_FILE, content, job);
+          } catch (err) {
+            return err.message;
+          }
+        } else {
+          return `device ${deviceId} offline`;
+        }
+      })).then(res => {
+        const isError = res.filter(i => i).length > 0;
+        if (isError) {
+          fn(res.filter(a => a));
+        } else {
+          fn();
+        }
+      });
+    });
+    socket.on(EVENT.WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE, async (deviceIds, playlistId, fn) => {
+      Promise.all(deviceIds.map(async deviceId => {
+        const deviceSocket = onlineDevices[deviceId];
+        if (deviceSocket) {
+          try {
+            const res = await Playlist.findById(playlistId).populate('content.media').populate('device');
+            const pushData = _.pick(res, ['content', 'id', 'name']);
+            const job = await Job.create({ device: deviceId, begin: new Date(), type: 'pushPlaylist', status: null });
+            deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_PLAYLIST, pushData, job);
+          } catch (err) {
+          }
+        } else {
+          return `device ${deviceId} offline`;
+        }
+      })).then(res => {
+        const isError = res.filter(i => i).length > 0;
+        if (isError) {
+          fn(res.filter(a => a));
+        } else {
+          fn();
+        }
+      });
     });
 
     socket.on(EVENT.WEB_LISTENER_GET_LIST_FILE, (deviceId, callbackOnViewDevice) => {

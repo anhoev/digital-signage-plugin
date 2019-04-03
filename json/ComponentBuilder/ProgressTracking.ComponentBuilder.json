@@ -1,0 +1,14 @@
+{
+  "_id": "5ca1ac6f5bed880f962a60ba",
+  "__v": 0,
+  "items": [
+    {
+      "choice": "view",
+      "component": "ProgressTracking"
+    }
+  ],
+  "renderToRoute": "Device Progress",
+  "isProduction": true,
+  "renderInAdminPage": true,
+  "id": "5ca1ac6f5bed880f962a60ba"
+}

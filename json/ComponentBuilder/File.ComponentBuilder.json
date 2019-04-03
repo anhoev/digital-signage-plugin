@@ -7,7 +7,7 @@
       "component": "DigitalContainer"
     }
   ],
-  "renderToRoute": "test",
+  "renderToRoute": "File Manager",
   "isProduction": true,
   "renderInAdminPage": true,
   "renderInIframe": false,

@@ -13,12 +13,6 @@
       "labelProp": "name"
     },
     {
-      "_id": "5c9ca7f02fda403ce07188da",
-      "schemaType": "string",
-      "key": "content",
-      "type": "input"
-    },
-    {
       "_id": "5c9ca7f02fda403ce07188d9",
       "schemaType": "date",
       "key": "begin",
@@ -29,6 +23,17 @@
       "schemaType": "number",
       "key": "duration",
       "type": "input@number"
+    },
+    {
+      "_id": "5ca5c38827a6e12fcecd0aae",
+      "schemaType": "objectId",
+      "key": "content",
+      "default": "",
+      "ref": "Content",
+      "autopopulate": true,
+      "type": "ref-select",
+      "label": "",
+      "labelProp": "name"
     }
   ],
   "id": "5c9ca7bf2fda403ce07188d7",

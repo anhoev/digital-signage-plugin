@@ -19,7 +19,8 @@
           "key": "media",
           "ref": "Content",
           "type": "ref-select",
-          "autopopulate": false
+          "autopopulate": true,
+          "labelProp": "name"
         },
         {
           "schemaType": "number",

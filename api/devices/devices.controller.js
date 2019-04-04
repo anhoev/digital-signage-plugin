@@ -15,10 +15,11 @@ module.exports.register = function (req, res) {
 
   const info = {
     'token': req.body.token,
-    'device-name': req.body.deviceName,
+    'name': req.body.name,
     'os': req.body.os,
     'os-version': req.body.osVersion,
-    'model': req.body.model
+    'model': req.body.model,
+    'resolution': req.body.resolution
   };
 
   deviceService.register(info)

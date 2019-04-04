@@ -3,7 +3,7 @@
         <v-toolbar color="light-blue" dark="">
             <v-toolbar-title>SelectedFile</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn @click="$emit('open-dialog')">
+            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0">
                 PUSH TO DEVICE
             </v-btn>
         </v-toolbar>

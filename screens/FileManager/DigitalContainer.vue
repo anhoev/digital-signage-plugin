@@ -162,7 +162,12 @@
       },
       selectFile(item) {
         if (!this.selected.some(i => i.path === item.path)) {
-          this.selected.push(item);
+          cms.getModel('Content').findOne({path: item.path}).then(res=>{
+            if (res) {
+              this.selected.push(res);
+            }
+          })
+          // this.selected.push(item);
         }
       },
       getDirectory() {
@@ -285,7 +290,7 @@
         this.selected = this.selected.filter(i => i !== item);
       },
       connectSocket() {
-        this.$options.socket = io.connect(`ws://${location.hostname}:8888/file-manager-web`);
+        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
         console.log('connect');
 
         this.$options.socket.on('WEB_EVENT_FILE_PROGRESS', res => {

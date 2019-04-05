@@ -4,6 +4,7 @@ const deviceApi = require('./api/devices');
 const playListApi = require('./api/playlist');
 const contentHistoryApi = require('./api/content-history');
 const fileSocket = require('./api/socket/filemanager.socket');
+const path = require('path');
 
 module.exports = cms => {
   cms.app.use('/digital/video', videoApi);

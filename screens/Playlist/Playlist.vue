@@ -1,5 +1,5 @@
 <template>
-    <v-layout row wrap style="height: 100%">
+    <v-layout row style="height: 100%">
         <v-dialog v-model="dialogPushToDevice" width="500">
             <push-to-device
                     :devices="devices"
@@ -12,41 +12,8 @@
                 <progress-tracking v-if="trackProgressModel" />
             </div>
         </v-dialog>
-        <v-flex md9>
-            <v-container fluid>
-                <v-layout row wrap v-if="selectedPlaylist">
-                    <v-flex md12>
-                        <v-btn @click="dialogPushToDevice=true">Push</v-btn>
-                    </v-flex>
-                    <v-flex shrink md6>
-                        <v-card style="width: 500px">
-                            <v-list style="width: 100%;"
-                            >
-                                <v-list-tile
-                                        fill-width
-                                        v-for="item in selectedPlaylist.content"
-                                        :key="item.path"
-                                        avatar
-                                        class="py-2"
-                                        @click=""
-                                >
-                                    <v-list-tile-avatar>
-                                        <i class="far fa-folder grid-icon" v-if="item.media.type==='directory'"></i>
-                                        <i class="far fa-file grid-icon" v-else></i>
-                                    </v-list-tile-avatar>
-                                    <v-list-tile-content>
-                                        <v-list-tile-title>name: {{item.media.name}}</v-list-tile-title>
-                                        <v-list-tile-sub-title>path: {{item.media.path}}</v-list-tile-sub-title>
-                                    </v-list-tile-content>
-                                </v-list-tile>
-                            </v-list>
-                        </v-card>
-                    </v-flex>
-                </v-layout>
-            </v-container>
-        </v-flex>
-        <v-flex md3 style="border-left: 1px solid #ddd;">
-            <v-layout row wrap>
+        <v-flex shrink style="border-right: 1px solid #ddd; width: 300px">
+            <v-layout row wrap fill-height>
                 <v-list dense style="width: 100%"
                 >
                     <v-list-tile v-for="item in playlist" @click="selectItem(item)"
@@ -59,6 +26,56 @@
                 </v-list>
             </v-layout>
         </v-flex>
+        <v-flex grow>
+            <v-container fluid>
+                <v-layout row wrap v-if="selectedPlaylist">
+                    <v-flex md12>
+                        <v-card style="width: 100%">
+                            <v-list class="four-line"
+                            >
+                                <template
+                                        v-for="(item, index) in selectedPlaylist.content"
+                                >
+                                    <v-list-tile
+                                            :key="item.path"
+                                            avatar
+                                    >
+                                        <v-list-tile-avatar size="100">
+                                            <thumbnail :item="item.media"></thumbnail>
+                                        </v-list-tile-avatar>
+                                        <v-list-tile-content>
+                                            <v-list-tile-title>name: {{item.media.name}}</v-list-tile-title>
+                                            <v-list-tile-sub-title class="sub-title">path: {{item.media.path}}
+                                            </v-list-tile-sub-title>
+                                            <v-list-tile-sub-title class="sub-title">resolution:
+                                                {{item.media.resolution}}
+                                            </v-list-tile-sub-title>
+                                            <v-list-tile-sub-title class="sub-title">duration: {{item.media.duration}}
+                                            </v-list-tile-sub-title>
+                                            <v-list-tile-sub-title class="sub-title">type: {{item.media.type}}
+                                            </v-list-tile-sub-title>
+                                        </v-list-tile-content>
+                                    </v-list-tile>
+                                    <v-divider
+                                            v-if="index + 1 < selectedPlaylist.content.length"
+                                            :key="index"
+                                    ></v-divider>
+                                </template>
+                                <p class="text-xs-center" v-if="selectedPlaylist.content.length===0">
+                                    This playlist is empty
+                                </p>
+                            </v-list>
+                            <v-card-actions>
+                                <v-btn @click="dialogPushToDevice=true" flat color="blue"
+                                :disabled="selectedPlaylist.content.length===0"
+                                >Push</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-flex>
+                </v-layout>
+            </v-container>
+        </v-flex>
+
     </v-layout>
 </template>
 
@@ -112,6 +129,8 @@
         const Model = cms.getModel('Playlist');
         Model.findById(item._id).populate('content.media').populate('device').then(res => {
           this.selectedPlaylist = res;
+          console.log(res);
+          this.selectedPlaylist.content = res.content.filter(item => item.media);
         });
       },
       pushNotify(selectedDevices) {
@@ -141,7 +160,7 @@
         });
       },
       connectSocket() {
-        this.$options.socket = io.connect(`ws://${location.hostname}:8888/file-manager-web`);
+        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
         this.$options.socket.on('WEB_EVENT_PLAYLIST_PROGRESS', res => {
           this.progress = res;
         });
@@ -174,12 +193,27 @@
         }
     }
 
+    .four-line {
+        .v-list__tile__avatar,
+        .v-list__tile__content,
+        .v-list__tile {
+            height: 112px;
+        }
+    }
+
     .online {
         color: #40bf5e
     }
 
     .offline {
         color: #c14444
+    }
+
+    .sub-title {
+        overflow: hidden;
+        height: 20px;
+        line-height: 20px;
+        text-overflow: ellipsis
     }
 </style>
 

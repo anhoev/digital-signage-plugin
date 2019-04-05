@@ -4,6 +4,7 @@
   "title": "name",
   "type": "Collection",
   "name": "Schedule",
+  "id": "5ca3274396a316f1ac376c96",
   "tabs": [],
   "extensions": [],
   "fields": [
@@ -11,7 +12,22 @@
       "_id": "5ca3291a96a316f1ac376c99",
       "schemaType": "string",
       "key": "name",
-      "type": "input"
+      "type": "input",
+      "flex": "md4"
+    },
+    {
+      "_id": "5ca70d7894da6c1848b2387b",
+      "schemaType": "date",
+      "key": "activeFrom",
+      "type": "input@date",
+      "flex": "md4"
+    },
+    {
+      "_id": "5ca70d7894da6c1848b2387a",
+      "schemaType": "date",
+      "key": "activeTo",
+      "type": "input@date",
+      "flex": "md4"
     },
     {
       "_id": "5ca3291a96a316f1ac376c98",
@@ -42,13 +58,24 @@
         {
           "schemaType": "string",
           "key": "from",
-          "type": "input"
+          "type": "time-picker"
         },
         {
           "schemaType": "string",
           "key": "to",
           "default": "",
-          "type": "input"
+          "type": "time-picker"
+        },
+        {
+          "schemaType": "string",
+          "key": "in",
+          "default": "this day",
+          "type": "input@select",
+          "optionsType": "onlyValue",
+          "options": [
+            "this day",
+            "next day"
+          ]
         },
         {
           "schemaType": "objectId",
@@ -71,6 +98,5 @@
       }
     }
   ],
-  "alwaysLoad": true,
-  "id": "5ca3274396a316f1ac376c96"
+  "alwaysLoad": true
 }

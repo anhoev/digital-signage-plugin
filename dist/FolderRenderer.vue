@@ -3,10 +3,7 @@
         <v-flex md2="" v-for="item in items" pa-2="" class="grid" :key="item.path">
             <v-card center="" style="cursor: pointer" @click.stop="$emit('select', item)" @dblclick="select(item)">
                 <v-flex center="" pa-4="" pt-5="" pb-2="">
-                    <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>
-                    <video :src="getPrviewUrl(item.path)" class="preview-image" v-else-if="isVideo(item.extension)"></video>
-                    <img :src="getPrviewUrl(item.path)" class="preview-image" v-else-if="isImage(item.extension)">
-                    <i class="far fa-file grid-icon" v-else=""></i>
+                    <thumbnail :item="item"></thumbnail>
                 </v-flex>
                 <v-card-text style="text-align: center">
                     <div style="overflow: hidden; text-overflow: ellipsis; line-height: 20px; height: 20px" :title="item.name">{{item.name}}
@@ -39,10 +36,7 @@
             <v-card center="" style="cursor: pointer" @click.stop="$emit('select', item)" @dblclick="select(item)">
                 <v-layout row="" wrap="" py-2="">
                     <v-flex shrink="" center="" pa-4="" style="font-size: 30px; width: 100px">
-                        <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>
-                        <video :src="getPrviewUrl(item.path)" class="preview-image" v-else-if="isVideo(item.extension)"></video>
-                        <img :src="getPrviewUrl(item.path)" class="preview-image" v-else-if="isImage(item.extension)">
-                        <i class="far fa-file grid-icon" v-else=""></i>
+                        <thumbnail :item="item"></thumbnail>
                     </v-flex>
                     <v-flex grow="" center="" justify-start="">
                         <v-card-text style="text-align: left">
@@ -91,14 +85,6 @@ var _default = {
       }
     },
 
-    isVideo(ext) {
-      return ['.mp4', '.mkv', '.mov'].includes(ext);
-    },
-
-    isImage(ext) {
-      return ['.jpg', '.jpeg', '.png', '.bmp'].includes(ext);
-    },
-
     remove(item) {
       if (item.type === 'file') {
         this.$emit('remove-file', item);
@@ -111,10 +97,6 @@ var _default = {
       } else {
         alert('cannot remove not empty folder');
       }
-    },
-
-    getPrviewUrl(path) {
-      return `${cms.baseUrl}video/${path}`;
     },
 
     preview(item) {
@@ -136,10 +118,4 @@ exports.default = _default;
         font-size: 50px;
     }
 
-</style>
-<style>
-    .preview-image {
-        height: 50px;
-        max-width: 70px;
-    }
 </style>

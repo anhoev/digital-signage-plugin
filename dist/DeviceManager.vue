@@ -1,6 +1,18 @@
 <template>
-    <v-layout row="" wrap="" style="height: 100%">
-        <v-flex md9="" style="border-left: 1px solid #ddd;">
+    <v-layout row="" style="height: 100%">
+        <v-flex shrink="" style="border-right: 1px solid #ddd; width: 300px">
+            <v-list dense="">
+                <v-list-tile v-for="item in devices" @click="selectItem(item)" :key="item._id" :class="{'selected-playlist':isSelected(item)}">
+                    <v-list-tile-content>
+                        <v-list-tile-title>{{item.name}}</v-list-tile-title>
+                    </v-list-tile-content>
+                    <v-list-tile-action>
+                        <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
+                    </v-list-tile-action>
+                </v-list-tile>
+            </v-list>
+        </v-flex>
+        <v-flex grow="" style="border-left: 1px solid #ddd;">
             <v-layout row="" wrap="">
                 <v-flex shrink="" md12="" v-if="error">
                     <v-card-title>{{error}}</v-card-title>
@@ -94,18 +106,7 @@
                 </v-flex>
             </v-layout>
         </v-flex>
-        <v-flex md3="" style="border-left: 1px solid #ddd;">
-            <v-list dense="">
-                <v-list-tile v-for="item in devices" @click="selectItem(item)" :key="item._id" :class="{'selected-playlist':isSelected(item)}">
-                    <v-list-tile-content>
-                        <v-list-tile-title>{{item.name}}</v-list-tile-title>
-                    </v-list-tile-content>
-                    <v-list-tile-action>
-                        <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
-                    </v-list-tile-action>
-                </v-list-tile>
-            </v-list>
-        </v-flex>
+
     </v-layout>
 </template>
 <script>
@@ -164,7 +165,7 @@ var _default = {
     },
 
     connectSocket() {
-      this.$options.socket = _socket.default.connect(`ws://${location.hostname}:8888/file-manager-web`);
+      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web');
       this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
       this.$options.socket.on('WEB_EVENT_LIST_FILE', files => {
         console.log('hello');

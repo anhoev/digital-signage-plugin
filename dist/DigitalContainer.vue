@@ -153,7 +153,13 @@ var _default = {
 
     selectFile(item) {
       if (!this.selected.some(i => i.path === item.path)) {
-        this.selected.push(item);
+        cms.getModel('Content').findOne({
+          path: item.path
+        }).then(res => {
+          if (res) {
+            this.selected.push(res);
+          }
+        }); // this.selected.push(item);
       }
     },
 
@@ -287,7 +293,7 @@ var _default = {
     },
 
     connectSocket() {
-      this.$options.socket = _socket.default.connect(`ws://${location.hostname}:8888/file-manager-web`);
+      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web');
       console.log('connect');
       this.$options.socket.on('WEB_EVENT_FILE_PROGRESS', res => {
         this.progress = res;

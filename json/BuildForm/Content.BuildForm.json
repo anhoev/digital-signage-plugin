@@ -90,6 +90,12 @@
         "active",
         "inactive"
       ]
+    },
+    {
+      "_id": "5ca6cda69dfc70079ebaa207",
+      "schemaType": "string",
+      "key": "resolution",
+      "type": "input"
     }
   ],
   "id": "5c9342a8a795034350ec626b",

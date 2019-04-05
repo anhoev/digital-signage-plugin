@@ -11,6 +11,7 @@
                     v-for="(item, index) in devices"
                     :key="item.path"
                     class="pa-2"
+                    two-line
                     avatar
             >
                 <v-list-tile-avatar>
@@ -21,6 +22,7 @@
                 <v-list-tile-content>
                     <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
                     <v-list-tile-sub-title>model: {{item.model}}</v-list-tile-sub-title>
+                    <v-list-tile-sub-title>resolution: {{item.resolution}}</v-list-tile-sub-title>
                 </v-list-tile-content>
 
                 <v-list-tile-action>

@@ -13,6 +13,8 @@ const notifyService = require('../../common/services/notify.service');
 // const registrationToken = require('../../common/constants/consts').REGISTRATION_TOKEN;
 const dirtree = require('directory-tree');
 const Content = global.cms.getModel('Content');
+const getVideoInfo = require('get-video-info');
+const mime = require('mime-types');
 
 function generatePartsFolderName(_path) {
   const fileNameWithOutExtension = path.basename(_path, path.extname(_path));
@@ -39,12 +41,35 @@ exports.handlerUpload = async function (outputPatch, pathFile) {
     if (err) {
       throw err;
     }
+    let resolution, duration = 0;
+    try {
+      const info = await getVideoInfo(pathFile);
+      console.log(info);
+      if (info.format.duration) {
+        duration = Math.floor(info.format.duration);
+      }
+      if (info && Array.isArray(info.streams)) {
+        const video_stream_info = info.streams.find(item => item.codec_type === 'video');
+        if (video_stream_info) {
+          resolution = `${video_stream_info.height}x${video_stream_info.width}`;
+        } else {
+          throw 'cant find video stream';
+        }
+      } else {
+        throw 'cant find video stream';
+      }
+    } catch (e) {
+      resolution = 'Cannot get resolution';
+    }
     const ext = path.extname(namebase);
     const param = {
       name: path.basename(namebase, path.extname(namebase)),
       path: path.relative(config.imageStore, pathFile),
       parts: [],
-      ext
+      ext,
+      resolution,
+      duration,
+      type: mime.lookup(ext)
     };
     fs.readdirSync(outputPatch)
       .forEach((fileName) => {

@@ -14,13 +14,8 @@
       "_id": "5c682740d6289f4a7c7695ae",
       "schemaType": "string",
       "key": "type",
-      "type": "input@select",
-      "flex": "md4",
-      "optionsType": "onlyValue",
-      "options": [
-        "video",
-        "image"
-      ]
+      "type": "input",
+      "optionsType": "onlyValue"
     },
     {
       "_id": "5c9343caa795034350ec6274",

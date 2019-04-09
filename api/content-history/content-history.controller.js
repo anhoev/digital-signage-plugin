@@ -24,7 +24,7 @@ module.exports.addContentController = function (req, res) {
   if (isValid.error) {
     res.status(400).json({ error: isValid.error.details, message: 'error on validate' });
   } else {
-    ContentHistoryService.addContentHistory(contentHistory, deviceToken)
+    ContentHistoryService.addContentHistory(contentHistory.map(i => ({ ...i, begin: new Date(i.begin) })), deviceToken)
       .then(result => {
         res.status(200).json({ message: 'success', data: result });
       })

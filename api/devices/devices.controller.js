@@ -15,7 +15,7 @@ module.exports.register = function (req, res) {
 
   const info = {
     'token': req.body.token,
-    'name': req.body.name,
+    'name': req.body.name || 'Unknown Devices',
     'os': req.body.os,
     'os-version': req.body.osVersion,
     'model': req.body.model,

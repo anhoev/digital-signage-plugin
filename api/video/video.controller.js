@@ -10,11 +10,11 @@ exports.upload = async function (req, res, next) {
   }
   const pathFile = path.join(config.imageStore, req.query.toPath || '', req.namebase);
   uploadService.handlerUpload(req.pathPar, pathFile)
-    .then(err => {
+    .then(result => {
       // if (err) //#endregion
       //   return
       // next();
-      res.send('success');
+      res.status(200).json({ data: result });
     })
     .catch(err => {
       return res.status(400).json({ err: err });

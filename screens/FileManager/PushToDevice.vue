@@ -8,7 +8,7 @@
         </v-card-title>
         <v-list subheader>
             <v-list-tile
-                    v-for="(item, index) in devices"
+                    v-for="(item, index) in listDevices"
                     :key="item.path"
                     class="pa-2"
                     two-line
@@ -38,7 +38,7 @@
             <v-btn
                     color="primary"
                     flat
-                    @click="$emit('push-notify', selectedDevices)"
+                    @click="$emit('push-notify', selectedDevices, $options.socket)"
             >
                 PUSH
             </v-btn>
@@ -47,17 +47,54 @@
 </template>
 
 <script>
+  import io from 'socket.io-client';
+
   export default {
     name: 'PushToDevice',
-    props: ['onlineDevices', 'devices'],
+    props: ['onlineDevices', 'devices', 'isolate'],
     data() {
       return {
-        selectedDevices: []
+        selectedDevices: [],
+        localOnlineDevices: null,
+        localDevices: null
       };
     },
+    mounted() {
+      console.log('hello', this.isolate);
+      if (this.isolate) {
+        console.log('get');
+        this.connectSocket();
+        const Device = cms.getModel('Device');
+        Device.find({}).then(res => {
+          this.localDevices = res;
+          console.log(res);
+        });
+      }
+    },
+    computed: {
+      listDevices() {
+        return this.localDevices || this.devices || [];
+      },
+      listOnlineDevices() {
+        return this.localOnlineDevices || this.onlineDevices || [];
+      }
+    },
+    beforeDestroy() {
+      this.$options.socket && this.$options.socket.close();
+    },
     methods: {
+      connectSocket() {
+        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
+        this.$options.socket.on('connect', () => {
+          this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
+        });
+        this.$options.socket.on('WEB_EVENT_LIST_ONLINE_DEVICE', (list) => {
+          this.localOnlineDevices = list;
+        });
+      },
       isOnline(device) {
-        return this.onlineDevices.indexOf(device._id) > -1;
+        const onlineDevices = this.listOnlineDevices;
+        return onlineDevices.indexOf(device._id) > -1;
       },
       changeDevice(event, id) {
         if (event === true) {

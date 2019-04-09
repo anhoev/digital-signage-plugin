@@ -42,7 +42,7 @@
                             </v-btn>
                         </v-flex>
                     </v-layout>
-                    <folder-renderer :layout="layout" v-if="current" :items="current.children" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
+                    <folder-renderer :layout="layout" v-if="current" :items="current.children" :list-thumbnail="listThumbnail" @change-thumbnail="showChangeThumbnail" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
                 </v-flex>
                 <v-flex md4="">
                     <device-list @open-dialog="dialogPushToDevice=true" :selected="selected" @remove-item="removeSelected">
@@ -63,6 +63,9 @@
             <div style="height: 90vh; background: #fff; overflow: auto">
                 <progress-tracking :key="trackProgressModel">
             </progress-tracking></div>
+        </v-dialog>
+        <v-dialog width="1200" v-model="dialogCreateThumbnail">
+            <generate-thumbnail v-if="dialogCreateThumbnail" @refresh="getDirectory" :model.sync="dialogCreateThumbnail" :thumbnail="createThumbnailInfo.thumbnail" :id="createThumbnailInfo._id" :source="createThumbnailInfo.path"></generate-thumbnail>
         </v-dialog>
     </div>
 </template>
@@ -101,13 +104,15 @@ var _default = {
       progress: [],
       uploadProgress: 0,
       layout: localStorage.getItem(KEY_LAYOUT) || 'list',
-      trackProgressModel: false
+      trackProgressModel: false,
+      dialogCreateThumbnail: false,
+      createThumbnailInfo: {},
+      listThumbnail: []
     };
   },
 
   computed: {
     breadCrumbs() {
-      console.log(this.current);
       const home = {
         name: 'home',
         index: 0
@@ -135,6 +140,17 @@ var _default = {
 
     layout(value) {
       localStorage.setItem(KEY_LAYOUT, value);
+    },
+
+    current(value) {
+      // check if current folder change, find all thumbnail of its children
+      cms.getModel('Content').find({
+        path: {
+          $in: value.children.filter(i => i.type === 'file').map(i => i.path)
+        }
+      }).then(res => {
+        this.listThumbnail = res || [];
+      });
     }
 
   },
@@ -143,6 +159,15 @@ var _default = {
       while (this.breadCrumbs.length - 1 > number) {
         this.current = this.stack.pop();
       }
+    },
+
+    showChangeThumbnail(item) {
+      this.dialogCreateThumbnail = true;
+      this.createThumbnailInfo = {
+        path: item.path,
+        _id: item._id,
+        thumbnail: item.thumbnail
+      };
     },
 
     getDevices() {
@@ -167,15 +192,15 @@ var _default = {
       fetch(cms.baseUrl + 'digital/video/folders').then(i => i.json()).then(item => {
         this.items = item.tree.children; // this.current = item.tree;
 
-        this.setCurrentItem([item.tree]);
+        this.refreshCurrentItem([item.tree]);
       });
     },
 
-    setCurrentItem(items, stack = []) {
+    refreshCurrentItem(items, stack = []) {
       if (this.current) {
         return items.forEach(i => {
           if (i.type === 'directory') {
-            this.setCurrentItem(i.children, [...stack, i]);
+            this.refreshCurrentItem(i.children, [...stack, i]);
           }
 
           if (i.path === this.current.path) {
@@ -201,6 +226,35 @@ var _default = {
       }
     },
 
+    getThumbnailSize(originalWidth, originalHeight) {
+      const width = 80;
+      const height = 80 * (originalHeight / originalWidth);
+      return {
+        width,
+        height
+      };
+    },
+
+    generateThumbnailFromFile(files) {
+      return new Promise(resolve => {
+        const url = URL.createObjectURL(files);
+        const img = new Image();
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const thumbnailSize = this.getThumbnailSize(img.width, img.height);
+          console.log(thumbnailSize);
+          canvas.width = thumbnailSize.width;
+          canvas.height = thumbnailSize.height;
+          context.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.5));
+        };
+
+        img.src = url;
+      });
+    },
+
     uploadFile(files) {
       if (!files) {
         return alert('file is required');
@@ -218,6 +272,25 @@ var _default = {
           console.log(this.uploadProgress);
         }
       }).then(res => {
+        if (res.data.data.type.indexOf('video') > -1) {
+          this.dialogCreateThumbnail = true;
+          this.createThumbnailInfo = {
+            path: res.data.data.path,
+            _id: res.data.data._id
+          };
+        }
+
+        if (res.data.data.type.indexOf('image') > -1) {
+          this.generateThumbnailFromFile(files).then(base64 => {
+            const Content = cms.getModel('Content');
+            Content.findByIdAndUpdate(res.data.data._id, {
+              thumbnail: base64
+            }).then(() => {
+              this.getDirectory();
+            });
+          });
+        }
+
         this.getDirectory();
         this.dialogUploadFile = false;
         this.uploadProgress = 0;

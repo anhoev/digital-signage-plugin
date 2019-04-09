@@ -1,9 +1,10 @@
 <template>
     <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>
-    <video :src="getPreviewUrl(item.path)" class="preview-image"
-           v-else-if="isVideo(item.extension || item.ext)"></video>
-    <img :src="getPreviewUrl(item.path)" class="preview-image"
-         v-else-if="isImage(item.extension  || item.ext)" />
+    <img :src="item.thumbnail" v-else-if="item.thumbnail" class="preview-image" />
+<!--    <video :src="getPreviewUrl(item.path)" class="preview-image"-->
+<!--           v-else-if="isVideo(item.extension || item.ext)"></video>-->
+<!--    <img :src="getPreviewUrl(item.path)" class="preview-image"-->
+<!--         v-else-if="isImage(item.extension  || item.ext)" />-->
     <i class="far fa-file grid-icon" v-else></i>
 </template>
 
@@ -22,7 +23,7 @@
       },
       isImage(ext) {
         return ['.jpg', '.jpeg', '.png', '.bmp'].includes(ext);
-      },
+      }
     }
   };
 </script>
@@ -30,9 +31,9 @@
 
 <style>
     .preview-image {
-        height: 50px!important;
+        height: 50px !important;
         max-width: 70px;
         align-self: center;
-        border-radius: 0!important;
+        border-radius: 0 !important;
     }
 </style>

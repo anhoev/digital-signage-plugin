@@ -33,69 +33,61 @@ function onEachFile(item) {
   item.path = path.relative(config.imageStore, item.path);
 }
 
-exports.handlerUpload = async function (outputPatch, pathFile) {
+exports.handlerUpload = function (outputPatch, pathFile) {
   const maxSize = config.split_size;
   const namebase = path.basename(pathFile);
 
-  fileService.splitFile(pathFile, maxSize, outputPatch, async (err) => {
-    if (err) {
-      throw err;
-    }
-    let resolution, duration = 0;
-    try {
-      const info = await getVideoInfo(pathFile);
-      console.log(info);
-      if (info.format.duration) {
-        duration = Math.floor(info.format.duration);
+  return new Promise((resolve, reject) => {
+    fileService.splitFile(pathFile, maxSize, outputPatch, async (err) => {
+      if (err) {
+        reject(err);
       }
-      if (info && Array.isArray(info.streams)) {
-        const video_stream_info = info.streams.find(item => item.codec_type === 'video');
-        if (video_stream_info) {
-          resolution = `${video_stream_info.height}x${video_stream_info.width}`;
+      let resolution, duration = 0;
+      try {
+        const info = await getVideoInfo(pathFile);
+        console.log(info);
+        if (info.format.duration) {
+          duration = Math.floor(info.format.duration);
+        }
+        if (info && Array.isArray(info.streams)) {
+          const video_stream_info = info.streams.find(item => item.codec_type === 'video');
+          if (video_stream_info) {
+            resolution = `${video_stream_info.height}x${video_stream_info.width}`;
+          } else {
+            throw 'cant find video stream';
+          }
         } else {
           throw 'cant find video stream';
         }
-      } else {
-        throw 'cant find video stream';
+      } catch (e) {
+        resolution = 'Cannot get resolution';
       }
-    } catch (e) {
-      resolution = 'Cannot get resolution';
-    }
-    const ext = path.extname(namebase);
-    const param = {
-      name: path.basename(namebase, path.extname(namebase)),
-      path: path.relative(config.imageStore, pathFile),
-      parts: [],
-      ext,
-      resolution,
-      duration,
-      type: mime.lookup(ext)
-    };
-    fs.readdirSync(outputPatch)
-      .forEach((fileName) => {
-        param.parts.push(fileName);
-      });
-    const newVideo = await Content.findOneAndUpdate({
-      path: param.path
-    }, {
-      $set: param
-    }, {
-      upsert: true
-    })
-      .exec();
-    if (newVideo) {
-      let payload = {
-        notification: {
-          title: 'Hello',
-          body: 'You '
-        }
+      const ext = path.extname(namebase);
+      const param = {
+        name: path.basename(namebase, path.extname(namebase)),
+        path: path.relative(config.imageStore, pathFile),
+        parts: [],
+        ext,
+        resolution,
+        duration,
+        type: mime.lookup(ext)
       };
-      const registrationToken = 'eADtxI5Ucbo:APA91bElAdY13pXYq4v-W-GeyoUtZiodjmVL3JJtGCs4KaGYa4ahH7qB8Zoet8LlqqMf03jHeQ0gV-RAuDYmc-EF7Ncl9568kqD_gu2J_pyBCe7SUFPSnEFbFKLxJDON0cyN0zpRCxcz';
-      notifyService.push(registrationToken, payload)
-        .catch(err => console.log(err));
-    }
-    return newVideo;
+      fs.readdirSync(outputPatch)
+        .forEach((fileName) => {
+          param.parts.push(fileName);
+        });
+      const newVideo = await Content.findOneAndUpdate({
+        path: param.path
+      }, {
+        $set: param
+      }, {
+        upsert: true,
+        new: true
+      }).exec();
+      resolve(newVideo);
+    });
   });
+
 };
 
 exports.getDirectoryTree = function () {

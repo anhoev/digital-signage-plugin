@@ -42,6 +42,11 @@
                         >
                             Playlist
                         </v-tab>
+                        <v-tab
+                                ripple
+                        >
+                            Schedule
+                        </v-tab>
                     </v-tabs>
                     <v-tabs-items v-model="active">
                         <v-tab-item
@@ -134,6 +139,84 @@
                                 </v-expansion-panel>
                             </v-card>
                         </v-tab-item>
+                        <v-tab-item>
+                            <v-card style="width: 100%">
+                                <v-expansion-panel v-if="Array.isArray(playlist)">
+                                    <v-expansion-panel-content v-for="model in schedule" :key="model._id">
+                                        <template v-slot:header class.native="pa-2">
+                                            <v-list-tile
+                                                    class="py-2"
+                                                    style="width: 100%"
+                                            >
+                                                <v-list-tile-content>
+                                                    <v-list-tile-title>Schedule Name: {{model.name}}</v-list-tile-title>
+                                                    <v-list-tile-sub-title>
+                                                        Time: from {{model.activeFrom}} to {{model.activeTo}}
+                                                    </v-list-tile-sub-title>
+                                                </v-list-tile-content>
+                                                <v-list-tile-action>
+                                                    <v-layout row>
+                                                        <v-btn icon ripple
+                                                               @click.prevent.stop="deletePlaylist(item)">
+                                                            <v-icon color="grey lighten-1">delete</v-icon>
+                                                        </v-btn>
+                                                    </v-layout>
+                                                </v-list-tile-action>
+                                            </v-list-tile>
+                                            <v-divider></v-divider>
+                                        </template>
+                                        <v-card>
+                                            <v-list>
+                                                <template v-for="(cItem, index) in model.weekdaySchedule"
+                                                >
+                                                    <v-list-tile
+                                                            :key="index"
+                                                            class="py-2"
+                                                            style="width: 100%"
+                                                    >
+                                                        <v-list-tile-content>
+                                                            <v-list-tile-title> {{cItem.playlist.name}}
+
+                                                            </v-list-tile-title>
+                                                            <v-list-tile-sub-title>
+                                                                {{cItem.weekdays.join(', ')}}, {{cItem.from}} -
+                                                                {{cItem.to}}{{cItem.in==='next day'? '(Next Day)':''}} :
+                                                            </v-list-tile-sub-title>
+                                                        </v-list-tile-content>
+                                                    </v-list-tile>
+                                                    <v-divider
+                                                            v-if="index!==model.weekdaySchedule.length-1"></v-divider>
+                                                </template>
+                                            </v-list>
+                                        </v-card>
+                                    </v-expansion-panel-content>
+                                </v-expansion-panel>
+                            </v-card>
+
+                            <!--                            <v-list>-->
+                            <!--                                <template v-for="(model, index) in schedule">-->
+                            <!--                                    <v-list-tile-->
+                            <!--                                            :key="model._id"-->
+                            <!--                                            avatar-->
+                            <!--                                            class="py-2"-->
+                            <!--                                            style="width: 100%"-->
+                            <!--                                    >-->
+                            <!--                                        <v-list-tile-content>-->
+                            <!--                                            <v-list-tile-title>Schedule Name: {{model.name}}</v-list-tile-title>-->
+                            <!--                                            <v-list-tile-sub-title>-->
+                            <!--                                                Time: from {{model.activeFrom}} to {{model.activeTo}}-->
+                            <!--                                            </v-list-tile-sub-title>-->
+                            <!--                                            <v-list-tile-sub-title>-->
+                            <!--                                                Weekday schedule:-->
+                            <!--                                            </v-list-tile-sub-title>-->
+                            <!--                                        </v-list-tile-content>-->
+                            <!--                                    </v-list-tile>-->
+                            <!--                                    <v-divider v-if="index!==files.length-1" />-->
+                            <!--                                </template>-->
+                            <!--                            </v-list>-->
+
+
+                        </v-tab-item>
                     </v-tabs-items>
                 </v-flex>
             </v-layout>
@@ -145,6 +228,7 @@
 <script>
 
   import io from 'socket.io-client';
+  import axios from 'axios';
 
   export default {
     name: 'DeviceManager',
@@ -161,7 +245,8 @@
       active: null,
       playlist: [],
       onlineDevices: [],
-      lastOnline: null
+      lastOnline: null,
+      schedule: []
     }),
     props: {
       source: String
@@ -224,7 +309,18 @@
         });
         this.$options.socket.emit('WEB_LISTENER_GET_PLAYLIST', item._id, (err, playlist) => {
           console.log(playlist);
-          this.playlist = playlist;
+          if (!err) {
+            this.playlist = playlist;
+          }
+        });
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_PUSH_SCHEDULE',
+          deviceId: item._id
+        }).then(res => {
+          console.log(res);
+          this.schedule = res.data.data;
+        }).catch(err => {
+          console.log(err);
         });
       },
       deleteFile(item) {

@@ -5,6 +5,7 @@ const ConnectionHistory = cms.getModel('ConnectionHistory');
 const Content = cms.getModel('Content');
 const Playlist = cms.getModel('Playlist');
 const Job = cms.getModel('Job');
+const Schedule = cms.getModel('Schedule');
 
 const EVENT = {
   APP_ACTION_DELETE_FILE: 'APP_ACTION_DELETE_FILE',
@@ -12,8 +13,10 @@ const EVENT = {
   APP_ACTION_PUSH_PLAYLIST: 'APP_ACTION_PUSH_PLAYLIST',
   APP_ACTION_DELETE_PLAYLIST: 'APP_ACTION_DELETE_PLAYLIST',
   APP_ACTION_SET_ACTIVE_PLAYLIST: 'APP_ACTION_SET_ACTIVE_PLAYLIST',
+  APP_ACTION_PUSH_SCHEDULE: 'APP_ACTION_PUSH_SCHEDULE',
   APP_EVENT_RECEIVE_FILE: 'APP_EVENT_RECEIVE_FILE',
   APP_EVENT_RECEIVE_PLAYLIST: 'APP_EVENT_RECEIVE_PLAYLIST',
+  APP_EVENT_RECEIVE_SCHEDULE: 'APP_EVENT_RECEIVE_SCHEDULE',
   APP_LISTENER_FILE_PROGRESS: 'APP_LISTENER_FILE_PROGRESS',
   APP_LISTENER_PLAYLIST_PROGRESS: 'APP_LISTENER_PLAYLIST_PROGRESS',
   APP_LISTENER_DOWNLOAD_FILE: 'APP_LISTENER_DOWNLOAD_FILE',
@@ -33,6 +36,8 @@ const EVENT = {
   WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE: 'WEB_LISTENER_PUSH_PLAYLIST_TO_DEVICE',
   WEB_LISTENER_VIEW_PROGRESS: 'WEB_LISTENER_VIEW_PROGRESS',
   WEB_LISTENER_CLOSE_PROGRESS: 'WEB_LISTENER_CLOSE_PROGRESS',
+  WEB_LISTENER_PUSH_SCHEDULE: 'WEB_LISTENER_PUSH_SCHEDULE',
+  // WEB_LISTENER_CLOSE_PROGRESS: 'WEB_LISTENER_CLOSE_PROGRESS',
   ERROR: 'ERROR'
 };
 
@@ -104,9 +109,36 @@ module.exports = cms => {
   const webNamespace = cms.io.of('/file-manager-web');
   const onlineDevices = {};
 
+  cms.app.post('/digital/p2p', function (req, res) {
+    const data = req.body.data;
+    const deviceId = req.body.deviceId;
+    const event = req.body.event;
+    const socketDevice = onlineDevices[deviceId];
+    if (socketDevice) {
+      let responded = false;
+      socketDevice.emit(event, data, (cbData) => {
+        if (!responded) {
+          res.status(200).json({ ok: 'ok', data: cbData });
+          responded = true;
+        }
+      });
+      setTimeout(() => {
+        if (!responded) {
+          res.status(400).json({ error: 'Connect device timeout' });
+          responded = true;
+        }
+      }, 8000);
+    } else {
+      res.status(400).json({ error: 'device offline' });
+    }
+  });
 
   appNamespace.use(verifyTokenMiddleware);
   appNamespace.on('connection', function (socket) {
+    if (onlineDevices[socket.device._id]) {
+      onlineDevices[socket.device._id].disconnect();
+      console.log('disconnect previous session');
+    }
     onlineDevices[socket.device._id] = socket;
     webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
     changeStatusDevice(socket, true);
@@ -147,7 +179,9 @@ module.exports = cms => {
             webNamespace.to(`downloadFile`).emit(EVENT.WEB_EVENT_FILE_PROGRESS, { job: res });
           }
         });
-      delete onlineDevices[socket.device._id]; // remove from online devices
+      if (onlineDevices[socket.device._id] === socket) {
+        delete onlineDevices[socket.device._id]; // remove from online devices
+      }
       webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices)); // emit online devices to client
     });
   });
@@ -171,6 +205,31 @@ module.exports = cms => {
       socket.leave(`downloadFile`);
     });
 
+    socket.on(EVENT.WEB_LISTENER_PUSH_SCHEDULE, async (deviceIds, scheduleId, fn) => {
+      Promise.all(deviceIds.map(async deviceId => {
+        const deviceSocket = onlineDevices[deviceId];
+        if (deviceSocket) {
+          try {
+            const schedule = await Schedule.findById(scheduleId);
+            const job = await Job.create({ device: deviceId, begin: new Date(), type: 'pushSchedule', status: null });
+            deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_SCHEDULE, schedule, job);
+          } catch (err) {
+            return err.message;
+          }
+        } else {
+          return `device ${deviceId} offline`;
+        }
+      })).then(res => {
+        const err = res.filter(i => i);
+        const isError = err.length > 0;
+        if (isError) {
+          fn(err);
+        } else {
+          fn();
+        }
+      });
+    });
+
     socket.on(EVENT.WEB_LISTENER_PUSH_FILE_TO_DEVICE, async (deviceIds, files, fn) => {
       Promise.all(deviceIds.map(async deviceId => {
         const deviceSocket = onlineDevices[deviceId];
@@ -187,9 +246,10 @@ module.exports = cms => {
           return `device ${deviceId} offline`;
         }
       })).then(res => {
-        const isError = res.filter(i => i).length > 0;
+        const err = res.filter(i => i);
+        const isError = err.length > 0;
         if (isError) {
-          fn(res.filter(a => a));
+          fn(err);
         } else {
           fn();
         }
@@ -210,9 +270,10 @@ module.exports = cms => {
           return `device ${deviceId} offline`;
         }
       })).then(res => {
-        const isError = res.filter(i => i).length > 0;
+        const err = res.filter(i => i);
+        const isError = err.length > 0;
         if (isError) {
-          fn(res.filter(a => a));
+          fn(err);
         } else {
           fn();
         }

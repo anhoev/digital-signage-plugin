@@ -3,16 +3,32 @@
         <v-toolbar color="light-blue" dark="">
             <v-toolbar-title>SelectedFile</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0">
-                PUSH TO DEVICE
-            </v-btn>
+
+            <v-menu style="position: absolute; top: 0; right: 0">
+                <v-btn icon="" style="position: absolute; right: 5px; top: 5px;" slot="activator">
+                    <i class="fas fa-ellipsis-v"></i>
+                </v-btn>
+                <v-list>
+                    <v-list-tile @click="$emit('open-dialog')">
+                        <v-list-tile-title>Push file to device</v-list-tile-title>
+                    </v-list-tile>
+                    <v-list-tile @click="">
+                        <v-list-tile-title>Create playlist</v-list-tile-title>
+                    </v-list-tile>
+                </v-list>
+            </v-menu>
+
+<!--            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0">-->
+<!--                PUSH TO DEVICE-->
+<!--            </v-btn>-->
         </v-toolbar>
 
         <v-list two-line="" subheader="">
             <template v-for="(item, index) in selected">
 
                 <v-list-tile :key="item.path" avatar="" three-line="" class="py-1" @click="">
-                    <v-list-tile-avatar>
+                    <v-list-tile-avatar style="height: 50px; width: 70px">
+<!--                        <img :src="item.thumbnail" style="height: 50px; max-width: 70px; border-radius: 0"/>-->
                         <thumbnail :item="item"></thumbnail>
                     </v-list-tile-avatar>
                     <v-list-tile-content>

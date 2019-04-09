@@ -91,6 +91,12 @@
       "schemaType": "string",
       "key": "resolution",
       "type": "input"
+    },
+    {
+      "_id": "5cab033a025dfa0e38a94e70",
+      "schemaType": "string",
+      "key": "thumbnail",
+      "type": "input"
     }
   ],
   "id": "5c9342a8a795034350ec626b",

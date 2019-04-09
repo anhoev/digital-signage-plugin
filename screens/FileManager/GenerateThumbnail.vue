@@ -131,26 +131,28 @@
         });
       },
       drawImg(canvas, imageSrc) {
-        const img = new Image();
-        img.onload = () => {
-          const context = canvas.getContext('2d');
-          const thumbnailSize = this.getThumbnailSize(img.width, img.height);
-          console.log(thumbnailSize);
-          canvas.width = thumbnailSize.width;
-          canvas.height = thumbnailSize.height;
-          context.drawImage(img,
-            0,
-            0,
-            img.width,
-            img.height,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-          resolve(canvas);
-        };
-        img.src = imageSrc;
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload = () => {
+            const context = canvas.getContext('2d');
+            const thumbnailSize = this.getThumbnailSize(img.width, img.height);
+            console.log(thumbnailSize);
+            canvas.width = thumbnailSize.width;
+            canvas.height = thumbnailSize.height;
+            context.drawImage(img,
+              0,
+              0,
+              img.width,
+              img.height,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            resolve(canvas);
+          };
+          img.src = imageSrc;
+        });
       },
       upload() {
         const file = this.$refs.file.files[0];
@@ -172,7 +174,7 @@
         this.$refs.video.addEventListener('loadeddata', this.onLoadedData);
       } else {
         const { canvas } = this.$refs;
-        this.drawImg(canvas, this.thumbnail)
+        this.drawImg(canvas, this.thumbnail);
       }
     },
     beforeDestroy() {

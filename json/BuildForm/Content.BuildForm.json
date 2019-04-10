@@ -96,11 +96,19 @@
       "_id": "5cab033a025dfa0e38a94e70",
       "schemaType": "string",
       "key": "thumbnail",
-      "type": "input"
+      "type": "inline-image"
     }
   ],
   "id": "5c9342a8a795034350ec626b",
-  "tabs": [],
+  "tabs": [
+    {
+      "fields": [
+        "parts"
+      ],
+      "_id": "5cada3d02314cd4198039db6",
+      "name": "Parts"
+    }
+  ],
   "name": "Content",
   "type": "Collection",
   "alwaysLoad": true,

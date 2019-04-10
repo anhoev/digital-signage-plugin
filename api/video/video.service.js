@@ -50,9 +50,9 @@ exports.handlerUpload = function (outputPatch, pathFile) {
           duration = Math.floor(info.format.duration);
         }
         if (info && Array.isArray(info.streams)) {
-          const video_stream_info = info.streams.find(item => item.codec_type === 'video');
-          if (video_stream_info) {
-            resolution = `${video_stream_info.height}x${video_stream_info.width}`;
+          const videoStreamInfo = info.streams.find(item => item.codec_type === 'video');
+          if (videoStreamInfo) {
+            resolution = `${videoStreamInfo.height}x${videoStreamInfo.width}`;
           } else {
             throw 'cant find video stream';
           }
@@ -62,6 +62,7 @@ exports.handlerUpload = function (outputPatch, pathFile) {
       } catch (e) {
         resolution = 'Cannot get resolution';
       }
+      console.log(resolution);
       const ext = path.extname(namebase);
       const param = {
         name: path.basename(namebase, path.extname(namebase)),

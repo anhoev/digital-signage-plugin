@@ -12,6 +12,11 @@
         <v-dialog v-model="show" width="600">
             <push-to-device v-if="show" :isolate="true" @push-notify="pushSchedule"></push-to-device>
         </v-dialog>
+        <v-dialog v-model="trackProgressModel" width="1200">
+            <div style="height: 90vh; background: #fff; overflow: auto">
+                <progress-tracking v-if="trackProgressModel" />
+            </div>
+        </v-dialog>
     </div>
 </template>
 
@@ -23,7 +28,8 @@
     props: ['model'],
     data() {
       return {
-        show: false
+        show: false,
+        trackProgressModel: false
       };
     },
     methods: {
@@ -38,7 +44,9 @@
         // }).catch(err => {
         //   console.log(err);
         // });
-        socket.emit('WEB_LISTENER_PUSH_SCHEDULE', devices, this.model._id, a => console.log(a));
+        socket.emit('WEB_LISTENER_PUSH_SCHEDULE', devices, this.model._id, a => {
+          this.trackProgressModel = true;
+        });
       }
     }
   };

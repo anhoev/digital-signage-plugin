@@ -119,7 +119,7 @@
                                                 </v-list-tile-content>
                                                 <v-list-tile-action>
                                                     <v-layout row="">
-                                                        <v-btn icon="" ripple="" @click.prevent.stop="deletePlaylist(item)">
+                                                        <v-btn icon="" ripple="" @click.prevent.stop="deleteSchedule(model)">
                                                             <v-icon color="grey lighten-1">delete</v-icon>
                                                         </v-btn>
                                                     </v-layout>
@@ -148,30 +148,6 @@
                                     </v-expansion-panel-content>
                                 </v-expansion-panel>
                             </v-card>
-
-                            <!--                            <v-list>-->
-                            <!--                                <template v-for="(model, index) in schedule">-->
-                            <!--                                    <v-list-tile-->
-                            <!--                                            :key="model._id"-->
-                            <!--                                            avatar-->
-                            <!--                                            class="py-2"-->
-                            <!--                                            style="width: 100%"-->
-                            <!--                                    >-->
-                            <!--                                        <v-list-tile-content>-->
-                            <!--                                            <v-list-tile-title>Schedule Name: {{model.name}}</v-list-tile-title>-->
-                            <!--                                            <v-list-tile-sub-title>-->
-                            <!--                                                Time: from {{model.activeFrom}} to {{model.activeTo}}-->
-                            <!--                                            </v-list-tile-sub-title>-->
-                            <!--                                            <v-list-tile-sub-title>-->
-                            <!--                                                Weekday schedule:-->
-                            <!--                                            </v-list-tile-sub-title>-->
-                            <!--                                        </v-list-tile-content>-->
-                            <!--                                    </v-list-tile>-->
-                            <!--                                    <v-divider v-if="index!==files.length-1" />-->
-                            <!--                                </template>-->
-                            <!--                            </v-list>-->
-
-
                         </v-tab-item>
                     </v-tabs-items>
                 </v-flex>
@@ -319,6 +295,18 @@ var _default = {
           this.playlist = playlist;
           alert('delete success');
         }
+      });
+    },
+
+    deleteSchedule(item) {
+      _axios.default.post(`${cms.baseUrl}digital/p2p`, {
+        event: 'APP_ACTION_DELETE_SCHEDULE',
+        deviceId: this.selectedDevices._id,
+        data: item._id
+      }).then(res => {
+        console.log(res);
+      }).catch(err => {
+        console.log(err);
       });
     },
 

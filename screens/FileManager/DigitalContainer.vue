@@ -7,7 +7,7 @@
             <v-btn icon @click="getDirectory" style="color: #fff">
                 <v-icon>cached</v-icon>
             </v-btn>
-            <v-toolbar-title>Digital Sinage</v-toolbar-title>
+            <v-toolbar-title>Digital Signage</v-toolbar-title>
 
             <v-spacer></v-spacer>
             <v-btn @click="dialogCreateFolder=true">

@@ -48,7 +48,7 @@
                             v-if="current"
                             :items="current.children"
                             :list-thumbnail="listThumbnail"
-                            @change-thumbnail="showChangeThumbnail"
+                            @change-thumbnail="showChangeThumbnailDialog"
                             @select="select"
                             @remove-file="removeFile"
                             @remove-folder="removeFolder"
@@ -173,7 +173,7 @@
           this.current = this.stack.pop();
         }
       },
-      showChangeThumbnail(item) {
+      showChangeThumbnailDialog(item) {
         this.dialogCreateThumbnail = true;
         this.createThumbnailInfo = {
           path: item.path,

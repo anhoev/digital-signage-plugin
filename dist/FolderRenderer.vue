@@ -11,7 +11,7 @@
                 </v-card-text>
             </v-card>
             <v-menu style="position: absolute; top: 0; right: 0">
-                <v-btn icon="" style="position: absolute; right: 0px; top: 5px;" slot="activator">
+                <v-btn icon="" style="position: absolute; right: 0px; top: 5px;" slot="activator" class="hoverIcon">
                     <i class="fas fa-ellipsis-v"></i>
                 </v-btn>
                 <v-list>
@@ -50,8 +50,8 @@
                 </v-layout>
             </v-card>
             <v-menu style="position: absolute; top: 0; right: 0">
-                <v-btn icon="" style="position: absolute; right: 0px; top: 0px;" slot="activator">
-                    <v-icon>menu</v-icon>
+                <v-btn icon="" style="position: absolute; right: 0px; top: 5px;" slot="activator" class="hoverIcon">
+                    <i class="fas fa-ellipsis-v"></i>
                 </v-btn>
                 <v-list>
                     <v-list-tile v-if="item.type==='file'" @click="remove(item)">
@@ -141,15 +141,16 @@ var _default = {
 };
 exports.default = _default;
 </script> 
-<style scoped>
-    .grid {
-        position: relative;
-        flex-basis: 20%;
-        max-width: 20%
-    }
+<style scoped>.grid {
+  position: relative;
+  flex-basis: 20%;
+  max-width: 20%; }
 
-    .grid-icon {
-        font-size: 50px;
-    }
+.grid-icon {
+  font-size: 50px; }
 
+.hoverIcon {
+  opacity: 0.4; }
+  .hoverIcon:hover {
+    opacity: 1; }
 </style>

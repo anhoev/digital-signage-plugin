@@ -9,7 +9,7 @@ exports.upload = async function (req, res, next) {
     return res.status(400).json({ err: 'file is required' });
   }
   const pathFile = path.join(config.imageStore, req.query.toPath || '', req.namebase);
-  uploadService.handlerUpload(req.pathPar, pathFile)
+  uploadService.handlerUpload(pathFile)
     .then(result => {
       // if (err) //#endregion
       //   return

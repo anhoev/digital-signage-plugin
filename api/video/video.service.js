@@ -20,11 +20,10 @@ function generatePartsFolderName(_path) {
   const fileNameWithOutExtension = path.basename(_path, path.extname(_path));
   const dirName = path.dirname(_path);
   if (dirName === '.') {
-    const partFolderName = ['', fileNameWithOutExtension].join('_');
-    return path.join(config.imageStore, '.parts', partFolderName);
+    return path.join(config.imageStore, '.parts', fileNameWithOutExtension);
   } else {
     const dirnameReplace = dirName.split(path.sep); // "a/b/c" =>[a,b,c]
-    const partFolderName = [...dirnameReplace, fileNameWithOutExtension].join('_');
+    const partFolderName = _.filter([...dirnameReplace, fileNameWithOutExtension]).join('_');
     return path.join(config.imageStore, '.parts', partFolderName);
   }
 }
@@ -33,12 +32,14 @@ function onEachFile(item) {
   item.path = path.relative(config.imageStore, item.path);
 }
 
-exports.handlerUpload = function (outputPatch, pathFile) {
+exports.handlerUpload = function (pathFile) {
   const maxSize = config.split_size;
   const namebase = path.basename(pathFile);
 
+  const outputParts = generatePartsFolderName(path.relative(config.imageStore, pathFile));
+  console.log(outputParts);
   return new Promise((resolve, reject) => {
-    fileService.splitFile(pathFile, maxSize, outputPatch, async (err) => {
+    fileService.splitFile(pathFile, maxSize, outputParts, async (err) => {
       if (err) {
         reject(err);
       }
@@ -73,7 +74,7 @@ exports.handlerUpload = function (outputPatch, pathFile) {
         duration,
         type: mime.lookup(ext)
       };
-      fs.readdirSync(outputPatch)
+      fs.readdirSync(outputParts)
         .forEach((fileName) => {
           param.parts.push(fileName);
         });
@@ -108,6 +109,7 @@ exports.deleteFile = function (_path) {
             reject(err);
           } else {
             const pathParts = generatePartsFolderName(_path);
+            console.log(pathParts);
             fileService.removeFolder(pathParts).then(() => {
               resolve();
             }).catch(err => {

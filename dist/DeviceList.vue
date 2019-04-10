@@ -1,26 +1,51 @@
 <template>
     <v-card>
+        <v-dialog lazy="" persistant="" v-model="showDialogCreatePlaylist" width="1200">
+            <v-card>
+                <v-card-text>
+                    <span>Create playlist</span>
+
+                    <v-text-field label="Playlist Name *" ref="inputRef" v-model="playlistName">
+                    </v-text-field>
+                </v-card-text>
+
+                <v-card-text>
+                    <div class="v-table__overflow">
+                        <table class="v-datatable v-table theme--light">
+                            <tbody><tr v-for="item in playlist">
+                                <td style="width: 100px">
+                                    <thumbnail :item="item.media"></thumbnail>
+                                </td>
+                                <td style="max-width: 400px">
+                                    <v-list-tile-title>name: {{item.media.name}}</v-list-tile-title>
+                                    <v-list-tile-sub-title>path: {{item.media.path}}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>resolution: {{item.media.resolution}}
+                                    </v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>type: {{item.media.type}}</v-list-tile-sub-title>
+                                </td>
+                                <td>
+                                    <v-text-field v-model="item.duration" label="Duration"></v-text-field>
+                                </td>
+                                <td style="width: 300px">
+                                    <v-flex px2="" style="height: 30px">
+                                        <v-select :items="effectOptions" v-model="item.effect" label="Effect"></v-select>
+                                    </v-flex>
+                                </td>
+                            </tr>
+                        </tbody></table>
+                    </div>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="green" flat="" @click="createPlaylist">
+                        Create
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-toolbar color="light-blue" dark="">
             <v-toolbar-title>SelectedFile</v-toolbar-title>
             <v-spacer></v-spacer>
-
-            <v-menu style="position: absolute; top: 0; right: 0">
-                <v-btn icon="" style="position: absolute; right: 5px; top: 5px;" slot="activator">
-                    <i class="fas fa-ellipsis-v"></i>
-                </v-btn>
-                <v-list>
-                    <v-list-tile @click="$emit('open-dialog')">
-                        <v-list-tile-title>Push file to device</v-list-tile-title>
-                    </v-list-tile>
-                    <v-list-tile @click="">
-                        <v-list-tile-title>Create playlist</v-list-tile-title>
-                    </v-list-tile>
-                </v-list>
-            </v-menu>
-
-<!--            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0">-->
-<!--                PUSH TO DEVICE-->
-<!--            </v-btn>-->
         </v-toolbar>
 
         <v-list two-line="" subheader="">
@@ -28,7 +53,7 @@
 
                 <v-list-tile :key="item.path" avatar="" three-line="" class="py-1" @click="">
                     <v-list-tile-avatar style="height: 50px; width: 70px">
-<!--                        <img :src="item.thumbnail" style="height: 50px; max-width: 70px; border-radius: 0"/>-->
+                        <!--                        <img :src="item.thumbnail" style="height: 50px; max-width: 70px; border-radius: 0"/>-->
                         <thumbnail :item="item"></thumbnail>
                     </v-list-tile-avatar>
                     <v-list-tile-content>
@@ -50,6 +75,14 @@
                 No selected items
             </v-flex>
         </v-list>
+        <v-card-actions>
+            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0" flat="" color="orange">
+                PUSH TO DEVICE
+            </v-btn>
+            <v-btn @click="showDialogCreatePlaylist = true" :disabled="selected.length===0" flat="" color="green">
+                Create playlist
+            </v-btn>
+        </v-card-actions>
     </v-card>
 </template>
 <script>
@@ -61,7 +94,42 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _default = {
   name: 'DeviceList',
-  props: ['selected']
+  props: ['selected'],
+
+  data() {
+    return {
+      showDialogCreatePlaylist: false,
+      playlistName: '',
+      effectOptions: ['fadeIn', 'slideInUp', 'slideInDown', 'slideInLeft', 'slideInRight', 'bounceIn', 'bounceInUp', 'bounceInDown', 'bounceInLeft', 'bounceInRight', 'zoomIn', 'zoomInDown', 'zoomInUp', 'zoomInLeft', 'zoomInRight'],
+      playlist: []
+    };
+  },
+
+  watch: {
+    showDialogCreatePlaylist(value) {
+      if (value) {
+        this.playlist = this.selected.map(item => {
+          return {
+            media: item,
+            duration: '',
+            effect: ''
+          };
+        });
+      }
+    }
+
+  },
+  methods: {
+    createPlaylist() {
+      cms.getModel('Playlist').create({
+        name: this.playlistName,
+        content: this.playlist.map(item => ({ ...item,
+          media: item.media._id
+        }))
+      }).then(() => this.showDialogCreatePlaylist = false);
+    }
+
+  }
 };
 exports.default = _default;
 </script> 

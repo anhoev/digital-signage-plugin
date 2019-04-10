@@ -30,11 +30,12 @@ module.exports.sortDirectories = function (pathFile) {
   return Array.of(pathFile);
 };
 
-module.exports.splitFile = function (_path, maxSize, outputPatch, cb) {
+module.exports.splitFile = function (_path, maxSize, outputParts, cb) {
   let maxFileSize = maxSize;
-  let outputPath = outputPatch;
   let readStream = fs.createReadStream(_path);
-  splitFileStream.split(readStream, maxFileSize, path.join(outputPath, path.basename(_path)), (filePaths) => {
+  fs.mkdirSync(outputParts);
+  const basename = path.basename(outputParts);
+  splitFileStream.getSplitWithGenFilePath((n) => `${outputParts}${path.sep}${basename}.split-${_.padStart(n, 4, '0')}`)(readStream, maxFileSize, (filePaths) => {
     async.each(filePaths, function (filePath, cb) {
       md5File(filePath, (err, hash) => {
         if (err) {
@@ -53,14 +54,6 @@ module.exports.splitFile = function (_path, maxSize, outputPatch, cb) {
       }
       return cb();
     });
-    // filePaths.forEach(filePath => {
-    //     // const hash = md5File.sync(parts);
-    //     md5File(filePath, (err, hash) => {
-    //         if (err) throw err;
-    //         fs.writeFileSync(`${filePath}.md5`, hash, 'utf-8');
-    //     })
-    // });
-    // return cb();
   });
 };
 module.exports.notify = async function (registrationToken, payload) {

@@ -1,19 +1,29 @@
 <template>
     <v-layout row style="height: 100%">
-        <v-flex shrink style="border-right: 1px solid #ddd; width: 300px">
-            <v-list dense>
-                <v-list-tile
-                        v-for="item in devices" @click="selectItem(item)"
-                        :key="item._id"
-                        :class="{'selected-playlist':isSelected(item)}"
+        <v-flex shrink
+                style="border-right: 1px solid #ddd; width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
+            <v-list dense two-line avatar>
+                <template v-for="(item, index) in sortedDevices"
                 >
-                    <v-list-tile-content>
-                        <v-list-tile-title>{{item.name}}</v-list-tile-title>
-                    </v-list-tile-content>
-                    <v-list-tile-action>
-                        <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
-                    </v-list-tile-action>
-                </v-list-tile>
+                    <v-list-tile
+                            :key="item._id"
+                            :class="{'selected-playlist':isSelected(item)}"
+                            @click="selectItem(item)"
+                    >
+                        <v-list-tile-avatar>
+                            <i class="fas fa-mobile-alt" style="font-size: 1.5em"></i>
+                        </v-list-tile-avatar>
+                        <v-list-tile-content>
+                            <v-list-tile-title>{{item.name}}</v-list-tile-title>
+                            <v-list-tile-sub-title>{{item.resolution}}</v-list-tile-sub-title>
+                        </v-list-tile-content>
+                        <v-list-tile-action>
+                            <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
+                        </v-list-tile-action>
+                    </v-list-tile>
+                    <v-divider v-if="index!==sortedDevices.length-1" style="opacity: 0.5; margin: 0 20px"></v-divider>
+                </template>
+
             </v-list>
         </v-flex>
         <v-flex grow style="border-left: 1px solid #ddd;">
@@ -227,6 +237,13 @@
     props: {
       source: String
     },
+    computed: {
+      sortedDevices() {
+        return this.devices.sort((a, b) => {
+          return this.onlineDevices.includes(b._id) ? 1 : -1;
+        });
+      }
+    },
     methods: {
       isOnline(device) {
         return this.onlineDevices.indexOf(device._id) > -1;
@@ -325,7 +342,7 @@
           deviceId: this.selectedDevices._id,
           data: item._id
         }).then(res => {
-          console.log(res);
+          this.schedule = res.data.data;
         }).catch(err => {
           console.log(err);
         });
@@ -353,11 +370,14 @@
 <style scoped lang="scss">
     .selected-playlist {
         background-color: #03a9f4;
-        color: #fff;
+        color: #fff !important;
 
         .v-list__tile__title {
             transition: none !important;
+        }
 
+        .v-list__tile__sub-title {
+            color: #fff !important;
         }
     }
 

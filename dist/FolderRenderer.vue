@@ -1,8 +1,8 @@
 <template>
     <v-layout v-if="layout === 'grid'" wrap="" row="">
         <v-flex md2="" v-for="item in items" pa-2="" class="grid" :key="item.path">
-            <v-card center="" style="cursor: pointer; user-select: none;" @click.stop="$emit('select', item)" @click="select(item)" :class="isSelected(item)?'selected':''">
-<!--                <i class="fas fa-check"></i>-->
+            <v-card center="" style="cursor: pointer; user-select: none;" @click="select(item)" :class="isSelected(item)?'selected':''">
+                <!--                <i class="fas fa-check"></i>-->
                 <v-flex center="" pa-4="" pt-5="" pb-2="">
                     <thumbnail :item="getThumbnailItem(item)"></thumbnail>
                 </v-flex>
@@ -37,7 +37,7 @@
     </v-layout>
     <v-layout v-else="" row="" wrap="">
         <v-flex md12="" v-for="item in items" ma-1="" style="position: relative" :key="item.path">
-            <v-card center="" style="cursor: pointer" @click.stop="$emit('select', item)" @dblclick="select(item)">
+            <v-card center="" style="cursor: pointer; user-select: none;" @click="select(item)" :class="isSelected(item)?'selected':''">
                 <v-layout row="" wrap="" py-2="">
                     <v-flex shrink="" center="" pa-4="" style="font-size: 30px; width: 100px">
                         <thumbnail :item="getThumbnailItem(item)"></thumbnail>
@@ -118,6 +118,8 @@ var _default = {
     select(item) {
       if (item.type === 'file') {
         this.$emit('select-file', item);
+      } else {
+        this.$emit('select', item);
       }
     },
 
@@ -161,6 +163,6 @@ exports.default = _default;
     opacity: 1; }
 
 .selected {
-  background-color: #ecf2fc;
-  color: #1c3ffff7; }
+  background-color: #ecf2fc !important;
+  color: #1c3ffff7 !important; }
 </style>

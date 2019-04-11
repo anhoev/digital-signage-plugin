@@ -48,6 +48,7 @@
                             v-if="current"
                             :items="current.children"
                             :list-thumbnail="listThumbnail"
+                            :selected="selected"
                             @change-thumbnail="showChangeThumbnailDialog"
                             @select="select"
                             @remove-file="removeFile"
@@ -196,6 +197,8 @@
             }
           });
           // this.selected.push(item);
+        } else {
+          this.selected = this.selected.filter(i => i.path !== item.path);
         }
       },
       getDirectory() {

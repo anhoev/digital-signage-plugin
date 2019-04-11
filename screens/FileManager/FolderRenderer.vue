@@ -1,7 +1,10 @@
 <template>
     <v-layout v-if="layout === 'grid'" wrap row>
         <v-flex md2 v-for="item in items" pa-2 class="grid" :key="item.path">
-            <v-card center style="cursor: pointer" @click.stop="$emit('select', item)" @dblclick="select(item)">
+            <v-card center style="cursor: pointer; user-select: none;" @click.stop="$emit('select', item)" @click="select(item)"
+                    :class="isSelected(item)?'selected':''"
+            >
+<!--                <i class="fas fa-check"></i>-->
                 <v-flex center pa-4 pt-5 pb-2>
                     <thumbnail :item="getThumbnailItem(item)"></thumbnail>
                 </v-flex>
@@ -107,9 +110,13 @@
     props: {
       items: null,
       layout: String,
-      listThumbnail: Array
+      listThumbnail: Array,
+      selected: Array
     },
     methods: {
+      isSelected(item) {
+        return this.selected.some(i => i.path === item.path);
+      },
       isVideo(item) {
         const dbItem = this.getThumbnailItem(item);
         if (dbItem.type && dbItem.type.indexOf('video') > -1) {
@@ -167,5 +174,10 @@
         &:hover {
             opacity: 1;
         }
+    }
+
+    .selected {
+        background-color: #ecf2fc;
+        color: #1c3ffff7;
     }
 </style>

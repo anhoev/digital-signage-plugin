@@ -1,5 +1,6 @@
 const deviceService = require('./devices.service');
 const Content = cms.getModel('Content');
+const Joi = require('joi');
 
 module.exports.getList = function (req, res) {
   deviceService.getList()
@@ -11,6 +12,15 @@ module.exports.getList = function (req, res) {
     });
 };
 
+const DeviceSchema = Joi.object().keys({
+  token: Joi.string().required(),
+  resolution: Joi.string(),
+  model: Joi.string(),
+  name: Joi.string(),
+  os: Joi.string(),
+  'os-version': Joi.string()
+});
+
 module.exports.register = function (req, res) {
 
   const info = {
@@ -21,6 +31,11 @@ module.exports.register = function (req, res) {
     'model': req.body.model,
     'resolution': req.body.resolution
   };
+
+  const validate = DeviceSchema.validate(info);
+  if (validate.error) {
+    return res.status(400).json({ error: validate.error });
+  }
 
   deviceService.register(info)
     .then(data => {

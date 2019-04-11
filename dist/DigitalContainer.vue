@@ -42,7 +42,7 @@
                             </v-btn>
                         </v-flex>
                     </v-layout>
-                    <folder-renderer :layout="layout" v-if="current" :items="current.children" :list-thumbnail="listThumbnail" @change-thumbnail="showChangeThumbnailDialog" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
+                    <folder-renderer :layout="layout" v-if="current" :items="current.children" :list-thumbnail="listThumbnail" :selected="selected" @change-thumbnail="showChangeThumbnailDialog" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
                 </v-flex>
                 <v-flex md4="">
                     <device-list @open-dialog="dialogPushToDevice=true" :selected="selected" @remove-item="removeSelected">
@@ -185,6 +185,8 @@ var _default = {
             this.selected.push(res);
           }
         }); // this.selected.push(item);
+      } else {
+        this.selected = this.selected.filter(i => i.path !== item.path);
       }
     },
 

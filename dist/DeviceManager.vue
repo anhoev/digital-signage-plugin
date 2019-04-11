@@ -1,6 +1,6 @@
 <template>
     <v-layout row="" style="height: 100%">
-        <v-flex shrink="" style="border-right: 1px solid #ddd; width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
+        <v-flex shrink="" style="border-right: 1px solid #ddd; max-width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
             <v-list dense="" two-line="" avatar="">
                 <template v-for="(item, index) in sortedDevices">
                     <v-list-tile :key="item._id" :class="{'selected-playlist':isSelected(item)}" @click="selectItem(item)">
@@ -20,7 +20,7 @@
 
             </v-list>
         </v-flex>
-        <v-flex grow="" style="border-left: 1px solid #ddd;">
+        <v-flex style="border-left: 1px solid #ddd; flex: 1">
             <v-layout row="" wrap="">
                 <v-flex shrink="" md12="" v-if="error">
                     <v-card-title>{{error}}</v-card-title>

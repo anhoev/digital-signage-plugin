@@ -97,9 +97,9 @@
             </v-flex>
         </v-list>
         <v-card-actions>
-            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0" flat color="orange">
-                PUSH TO DEVICE
-            </v-btn>
+<!--            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0" flat color="orange">-->
+<!--                PUSH TO DEVICE-->
+<!--            </v-btn>-->
             <v-btn @click="showDialogCreatePlaylist = true" :disabled="selected.length===0" flat color="green">
                 Create playlist
             </v-btn>

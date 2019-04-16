@@ -257,7 +257,7 @@
       },
       isFileNotInAnyPlaylist(name) {
         return !this.playlist.some(playlist => {
-          return playlist.content.some(item => item.media & item.media.name + item.media.ext === name);
+          return playlist.content.some(item => item.media && item.media.name + item.media.ext === name);
         });
       },
       isFileNotExists(name) {

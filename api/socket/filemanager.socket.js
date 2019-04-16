@@ -326,13 +326,13 @@ module.exports = cms => {
             if (err) {
               callbackOnViewPlaylist(err);
             } else {
-              const isValid = arrayPlaylistSchema.validate(playlist, { allowUnknown: true });
-              if (isValid.error) {
-                console.log('error on receive playlist', isValid.error.message);
-                callbackOnViewPlaylist(isValid.error.message);
-              } else {
+              // const isValid = arrayPlaylistSchema.validate(playlist, { allowUnknown: true });
+              // if (isValid.error) {
+              //   console.log('error on receive playlist', isValid.error.message);
+              //   callbackOnViewPlaylist(isValid.error.message);
+              // } else {
                 callbackOnViewPlaylist(null, playlist);
-              }
+              // }
             }
           });
           setTimeout(() => {

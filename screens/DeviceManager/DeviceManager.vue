@@ -124,6 +124,7 @@
                                                 <template v-for="(cItem, index) in item.content"
                                                 >
                                                     <v-list-tile
+                                                            v-if="cItem.media"
                                                             avatar
                                                             :key="cItem.media.path"
                                                             class="py-2"

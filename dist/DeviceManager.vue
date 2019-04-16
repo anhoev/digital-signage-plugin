@@ -93,7 +93,7 @@
                                         <v-card>
                                             <v-list>
                                                 <template v-for="(cItem, index) in item.content">
-                                                    <v-list-tile avatar="" :key="cItem.media.path" class="py-2" style="width: 100%">
+                                                    <v-list-tile v-if="cItem.media" avatar="" :key="cItem.media.path" class="py-2" style="width: 100%">
                                                         <v-list-tile-avatar>
                                                             <i class="far fa-folder grid-icon"></i>
                                                         </v-list-tile-avatar>

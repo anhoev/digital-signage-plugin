@@ -3,7 +3,7 @@
         <v-flex md2 v-for="item in items" pa-2 class="grid" :key="item.path">
             <v-card center style="cursor: pointer; user-select: none;"
                     @click="select(item)"
-                    :class="isSelected(item)?'selected':''"
+                    :class="isSelected(item)?'selected-file':''"
             >
                 <!--                <i class="fas fa-check"></i>-->
                 <v-flex center pa-4 pt-5 pb-2>
@@ -55,7 +55,7 @@
         <v-flex md12 v-for="item in items" ma-1 style="position: relative" :key="item.path">
             <v-card center style="cursor: pointer; user-select: none;"
                     @click="select(item)"
-                    :class="isSelected(item)?'selected':''"
+                    :class="isSelected(item)?'selected-file':''"
             >
                 <v-layout row wrap py-2>
                     <v-flex shrink center pa-4 style="font-size: 30px; width: 100px">
@@ -181,8 +181,10 @@
             opacity: 1;
         }
     }
+</style>
 
-    .selected {
+<style>
+    .selected-file {
         background-color: #ecf2fc!important;
         color: #1c3ffff7!important;;
     }

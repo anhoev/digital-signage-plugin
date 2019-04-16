@@ -11,28 +11,29 @@
 
                 <v-card-text>
                     <div class="v-table__overflow">
-                        <table class="v-datatable v-table theme--light">
-                            <tbody><tr v-for="item in playlist">
-                                <td style="width: 100px">
-                                    <thumbnail :item="item.media"></thumbnail>
-                                </td>
-                                <td style="max-width: 400px">
-                                    <v-list-tile-title>name: {{item.media.name}}</v-list-tile-title>
-                                    <v-list-tile-sub-title>path: {{item.media.path}}</v-list-tile-sub-title>
-                                    <v-list-tile-sub-title>resolution: {{item.media.resolution}}
-                                    </v-list-tile-sub-title>
-                                    <v-list-tile-sub-title>type: {{item.media.type}}</v-list-tile-sub-title>
-                                </td>
-                                <td>
-                                    <v-text-field v-model="item.duration" label="Duration"></v-text-field>
-                                </td>
-                                <td style="width: 300px">
-                                    <v-flex px2="" style="height: 30px">
-                                        <v-select :items="effectOptions" v-model="item.effect" label="Effect"></v-select>
-                                    </v-flex>
-                                </td>
-                            </tr>
-                        </tbody></table>
+                        <v-list>
+                            <table class="v-datatable v-table theme--light">
+                                <tbody><tr v-for="item in playlist">
+                                    <td style="width: 100px" class="text-xs-center">
+                                        <thumbnail :item="item.media"></thumbnail>
+                                    </td>
+                                    <td style="max-width: 400px">
+                                        <v-list-tile-title>{{item.media.name}}</v-list-tile-title>
+                                        <v-list-tile-sub-title>path: {{item.media.path}}</v-list-tile-sub-title>
+                                        <v-list-tile-sub-title>{{item.media.resolution}}, {{item.media.duration}}s ({{item.media.type}})
+                                        </v-list-tile-sub-title>
+                                    </td>
+                                    <td>
+                                        <v-text-field v-model="item.duration" label="Duration"></v-text-field>
+                                    </td>
+                                    <td style="width: 300px">
+                                        <v-flex px2="" style="height: 30px">
+                                            <v-select :items="effectOptions" v-model="item.effect" label="Effect"></v-select>
+                                        </v-flex>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                        </v-list>
                     </div>
                 </v-card-text>
                 <v-card-actions>
@@ -52,15 +53,15 @@
             <template v-for="(item, index) in selected">
 
                 <v-list-tile :key="item.path" avatar="" three-line="" class="py-1" @click="">
-                    <v-list-tile-avatar style="height: 50px; width: 70px">
+                    <v-list-tile-avatar>
                         <!--                        <img :src="item.thumbnail" style="height: 50px; max-width: 70px; border-radius: 0"/>-->
                         <thumbnail :item="item"></thumbnail>
                     </v-list-tile-avatar>
                     <v-list-tile-content>
-                        <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
+                        <v-list-tile-title>{{item.name}}</v-list-tile-title>
                         <v-list-tile-sub-title>path: {{item.path}}</v-list-tile-sub-title>
-                        <v-list-tile-sub-title>resolution: {{item.resolution}}</v-list-tile-sub-title>
-                        <v-list-tile-sub-title>type: {{item.type}}</v-list-tile-sub-title>
+                        <v-list-tile-sub-title>{{item.resolution}}, {{item.duration}}s ({{item.type}})
+                        </v-list-tile-sub-title>
                     </v-list-tile-content>
 
                     <v-list-tile-action>
@@ -76,9 +77,9 @@
             </v-flex>
         </v-list>
         <v-card-actions>
-<!--            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0" flat color="orange">-->
-<!--                PUSH TO DEVICE-->
-<!--            </v-btn>-->
+            <!--            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0" flat color="orange">-->
+            <!--                PUSH TO DEVICE-->
+            <!--            </v-btn>-->
             <v-btn @click="showDialogCreatePlaylist = true" :disabled="selected.length===0" flat="" color="green">
                 Create playlist
             </v-btn>

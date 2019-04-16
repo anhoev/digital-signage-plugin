@@ -24,7 +24,7 @@ exports.upload = async function (req, res, next) {
 exports.delete = async function (req, res) {
   const _path = req.query.path;
   uploadService.deleteFile(_path)
-    .then((res) => {
+    .then((result) => {
       res.status(200).json({ ok: 'ok' });
     })
     .catch(err => {

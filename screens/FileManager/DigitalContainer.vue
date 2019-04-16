@@ -51,7 +51,7 @@
                             :selected="selected"
                             @change-thumbnail="showChangeThumbnailDialog"
                             @select="select"
-                            @remove-file="removeFile"
+                            @remove-file="onClickRemoveFile"
                             @remove-folder="removeFolder"
                             @select-file="selectFile"></folder-renderer>
                 </v-flex>
@@ -99,6 +99,13 @@
                     :id="createThumbnailInfo._id"
                     :source="createThumbnailInfo.path"></generate-thumbnail>
         </v-dialog>
+        <v-dialog width="800" v-model="showDialogDelete">
+            <delete-dialog
+                    :model="showDialogDelete"
+                    :delete-item="deletingItem"
+                    @remove-file="removeFile"
+                    @close-dialog="showDialogDelete = false"></delete-dialog>
+        </v-dialog>
     </div>
 </template>
 
@@ -130,7 +137,9 @@
         trackProgressModel: false,
         dialogCreateThumbnail: false,
         createThumbnailInfo: {},
-        listThumbnail: []
+        listThumbnail: [],
+        deletingItem: null,
+        showDialogDelete: false
       };
     },
     computed: {
@@ -237,8 +246,8 @@
         }
       },
       getThumbnailSize(originalWidth, originalHeight) {
-        const width = 80;
-        const height = 80 * (originalHeight / originalWidth);
+        const width = 140;
+        const height = width * (originalHeight / originalWidth);
         return { width, height };
       },
       generateThumbnailFromFile(files) {
@@ -349,13 +358,14 @@
           // }
         });
       },
-      removeFile(item) {
-        fetch(`${cms.baseUrl}digital/video/delete?path=${item.path}`, {
-          method: 'DELETE'
-        }).then(res => {
-          this.selected = this.selected.filter(i => i.path !== item.path);
-          this.getDirectory();
-        });
+      onClickRemoveFile(item) {
+        cms.getModel('Content').findOne({ path: item.path }).then(res => {
+            if (res) {
+              this.deletingItem = res;
+              this.showDialogDelete = true;
+            }
+          }
+        );
       },
       removeFolder(item) {
         fetch(`${cms.baseUrl}digital/video/delete-folder?path=${item.path}`, {
@@ -363,6 +373,21 @@
         }).then(res => {
           this.getDirectory();
         });
+      },
+      removeFile(item, playlists, schedule) {
+        console.log(arguments);
+        Promise.all([
+          fetch(`${cms.baseUrl}digital/video/delete?path=${item.path}`, {
+            method: 'DELETE'
+          }),
+          cms.getModel('Playlist').remove({ _id: { $in: playlists.map(i => i._id) } }),
+          cms.getModel('Schedule').remove({ _id: { $in: schedule.map(i => i._id) } })
+        ])
+          .then(res => {
+            this.getDirectory();
+            this.showDialogDelete = false;
+            console.log(res);
+          });
       },
       removeSelected(item) {
         this.selected = this.selected.filter(i => i !== item);

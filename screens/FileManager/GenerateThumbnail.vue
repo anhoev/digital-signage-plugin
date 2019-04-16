@@ -98,9 +98,8 @@
       },
       capture() {
         const { canvas, video } = this.$refs;
-        console.log(canvas.width, canvas.height);
-        canvas.width = 80;
-        canvas.height = 80 * (this.$refs.video.videoHeight / this.$refs.video.videoWidth);
+        canvas.width = 140;
+        canvas.height = 140 * (this.$refs.video.videoHeight / this.$refs.video.videoWidth);
         canvas.getContext('2d').drawImage(video, 0, 0, this.$refs.video.videoWidth, this.$refs.video.videoHeight, 0, 0, canvas.width, canvas.height);
 
       },
@@ -113,7 +112,7 @@
         this.save();
       },
       getThumbnailSize(originalWidth, originalHeight) {
-        const width = 80;
+        const width = 140;
         const height = width * (originalHeight / originalWidth);
         return { width, height };
       },

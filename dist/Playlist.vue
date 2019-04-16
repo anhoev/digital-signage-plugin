@@ -34,12 +34,8 @@
                                             <v-list-tile-title>name: {{item.media.name}}</v-list-tile-title>
                                             <v-list-tile-sub-title class="sub-title">path: {{item.media.path}}
                                             </v-list-tile-sub-title>
-                                            <v-list-tile-sub-title class="sub-title">resolution:
-                                                {{item.media.resolution}}
-                                            </v-list-tile-sub-title>
-                                            <v-list-tile-sub-title class="sub-title">duration: {{item.media.duration}}
-                                            </v-list-tile-sub-title>
-                                            <v-list-tile-sub-title class="sub-title">type: {{item.media.type}}
+                                            <v-list-tile-sub-title class="sub-title">
+                                                {{item.media.resolution}}, {{item.media.duration}}s ({{item.media.type}})
                                             </v-list-tile-sub-title>
                                         </v-list-tile-content>
                                     </v-list-tile>

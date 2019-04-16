@@ -42,7 +42,7 @@
                             </v-btn>
                         </v-flex>
                     </v-layout>
-                    <folder-renderer :layout="layout" v-if="current" :items="current.children" :list-thumbnail="listThumbnail" :selected="selected" @change-thumbnail="showChangeThumbnailDialog" @select="select" @remove-file="removeFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
+                    <folder-renderer :layout="layout" v-if="current" :items="current.children" :list-thumbnail="listThumbnail" :selected="selected" @change-thumbnail="showChangeThumbnailDialog" @select="select" @remove-file="onClickRemoveFile" @remove-folder="removeFolder" @select-file="selectFile"></folder-renderer>
                 </v-flex>
                 <v-flex md4="">
                     <device-list @open-dialog="dialogPushToDevice=true" :selected="selected" @remove-item="removeSelected">
@@ -66,6 +66,9 @@
         </v-dialog>
         <v-dialog width="1200" v-model="dialogCreateThumbnail">
             <generate-thumbnail v-if="dialogCreateThumbnail" @refresh="getDirectory" :model.sync="dialogCreateThumbnail" :thumbnail="createThumbnailInfo.thumbnail" :id="createThumbnailInfo._id" :source="createThumbnailInfo.path"></generate-thumbnail>
+        </v-dialog>
+        <v-dialog width="800" v-model="showDialogDelete">
+            <delete-dialog :model="showDialogDelete" :delete-item="deletingItem" @remove-file="removeFile" @close-dialog="showDialogDelete = false"></delete-dialog>
         </v-dialog>
     </div>
 </template>
@@ -107,7 +110,9 @@ var _default = {
       trackProgressModel: false,
       dialogCreateThumbnail: false,
       createThumbnailInfo: {},
-      listThumbnail: []
+      listThumbnail: [],
+      deletingItem: null,
+      showDialogDelete: false
     };
   },
 
@@ -229,8 +234,8 @@ var _default = {
     },
 
     getThumbnailSize(originalWidth, originalHeight) {
-      const width = 80;
-      const height = 80 * (originalHeight / originalWidth);
+      const width = 140;
+      const height = width * (originalHeight / originalWidth);
       return {
         width,
         height
@@ -346,12 +351,14 @@ var _default = {
       });
     },
 
-    removeFile(item) {
-      fetch(`${cms.baseUrl}digital/video/delete?path=${item.path}`, {
-        method: 'DELETE'
+    onClickRemoveFile(item) {
+      cms.getModel('Content').findOne({
+        path: item.path
       }).then(res => {
-        this.selected = this.selected.filter(i => i.path !== item.path);
-        this.getDirectory();
+        if (res) {
+          this.deletingItem = res;
+          this.showDialogDelete = true;
+        }
       });
     },
 
@@ -360,6 +367,25 @@ var _default = {
         method: 'DELETE'
       }).then(res => {
         this.getDirectory();
+      });
+    },
+
+    removeFile(item, playlists, schedule) {
+      console.log(arguments);
+      Promise.all([fetch(`${cms.baseUrl}digital/video/delete?path=${item.path}`, {
+        method: 'DELETE'
+      }), cms.getModel('Playlist').remove({
+        _id: {
+          $in: playlists.map(i => i._id)
+        }
+      }), cms.getModel('Schedule').remove({
+        _id: {
+          $in: schedule.map(i => i._id)
+        }
+      })]).then(res => {
+        this.getDirectory();
+        this.showDialogDelete = false;
+        console.log(res);
       });
     },
 

@@ -12,7 +12,8 @@
                         <v-list-tile-content>
                             <v-list-tile-title v-if="item.isRegistered">{{item.name}}</v-list-tile-title>
                             <v-list-tile-title v-else="">Unregistered Device</v-list-tile-title>
-                            <v-list-tile-sub-title>{{item.resolution}}</v-list-tile-sub-title>
+                            <v-list-tile-sub-title>{{item.resolution}} <span v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
+                            </v-list-tile-sub-title>
                         </v-list-tile-content>
                         <v-list-tile-action>
                             <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
@@ -182,9 +183,9 @@
                                     </div>
                                 </div>
 
-<!--                                <v-btn>-->
-<!--                                    Delete all device data-->
-<!--                                </v-btn>-->
+                                <!--                                <v-btn>-->
+                                <!--                                    Delete all device data-->
+                                <!--                                </v-btn>-->
                             </v-card>
                         </v-tab-item>
                     </v-tabs-items>

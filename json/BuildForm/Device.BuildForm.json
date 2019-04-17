@@ -73,6 +73,18 @@
         "1920x1080",
         "1080x1920"
       ]
+    },
+    {
+      "_id": "5cb55891260c730c94dc4683",
+      "schemaType": "boolean",
+      "key": "isRegistered",
+      "type": "input@checkbox"
+    },
+    {
+      "_id": "5cb57779260c730c94dc4699",
+      "schemaType": "string",
+      "key": "deviceCode",
+      "type": "input"
     }
   ],
   "id": "5c9466cd9355686e4f94d19c",

@@ -5,10 +5,13 @@
                 <template v-for="(item, index) in sortedDevices">
                     <v-list-tile :key="item._id" :class="{'selected-playlist':isSelected(item)}" @click="selectItem(item)">
                         <v-list-tile-avatar>
-                            <i class="fas fa-mobile-alt" style="font-size: 1.5em"></i>
+                            <i class="fas fa-mobile-alt" style="font-size: 1.5em; position: relative" :style="{opacity: item.isRegistered ? 1 : 0.5}">
+                                <i class="fas fa-question" v-if="!item.isRegistered" style="position: absolute; top: 50%; left: 50%; font-size: 10px; margin-top: -6.5px; margin-left: -4px"></i>
+                            </i>
                         </v-list-tile-avatar>
                         <v-list-tile-content>
-                            <v-list-tile-title>{{item.name}}</v-list-tile-title>
+                            <v-list-tile-title v-if="item.isRegistered">{{item.name}}</v-list-tile-title>
+                            <v-list-tile-title v-else="">Unregistered Device</v-list-tile-title>
                             <v-list-tile-sub-title>{{item.resolution}}</v-list-tile-sub-title>
                         </v-list-tile-content>
                         <v-list-tile-action>
@@ -24,11 +27,11 @@
             <v-layout row="" wrap="">
                 <v-flex shrink="" md12="" v-if="error">
                     <v-card-title>{{error}}</v-card-title>
-                    <v-card-title v-if="lastOnline">last online: {{ lastOnline.date}}</v-card-title>
+                    <v-card-title v-if="lastOnline">last online: {{lastOnline.date}}</v-card-title>
                 </v-flex>
                 <v-card-title v-if="connecting &amp;&amp; !error">Connecting to device...
                 </v-card-title>
-                <v-flex md12="" v-else-if="!error &amp;&amp; selectedDevices">
+                <v-flex md12="" v-else-if="!error &amp;&amp; selectedDevices &amp;&amp; selectedDevices.isRegistered">
                     <v-tabs v-model="active" color="cyan" dark="" slider-color="yellow">
                         <v-tab ripple="">
                             File Manager
@@ -40,6 +43,18 @@
                         <v-tab ripple="">
                             Schedule
                         </v-tab>
+                        <v-tab ripple="">
+                            Device Control
+                        </v-tab>
+                        <v-layout justify-end="" align-center="" style="color: #fff">
+                            <div class="mx-2 pa-2">
+                                <v-btn flat="" @click="showModalRegister=true">Edit device info</v-btn>
+                            </div>
+                            <div class="pa-2">
+                                Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
+                                (MB)
+                            </div>
+                        </v-layout>
                     </v-tabs>
                     <v-tabs-items v-model="active">
                         <v-tab-item>
@@ -157,11 +172,43 @@
                                 </v-expansion-panel>
                             </v-card>
                         </v-tab-item>
+                        <v-tab-item>
+                            <v-card>
+                                <div class="pa-2">
+                                    Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
+                                    (MB)
+                                    <div style="width: 200px; height: 20px; border-radius: 10px; overflow: hidden; background: #ddd">
+                                        <div style="height: 20px; background: #03a9f4" :style="{width: (freeStorage.free/freeStorage.total*100) + '%'}"></div>
+                                    </div>
+                                </div>
+
+<!--                                <v-btn>-->
+<!--                                    Delete all device data-->
+<!--                                </v-btn>-->
+                            </v-card>
+                        </v-tab-item>
                     </v-tabs-items>
+                </v-flex>
+                <v-flex v-else-if="selectedDevices &amp;&amp; !selectedDevices.isRegistered">
+                    <div class="pa-5">
+                        Device is not register
+                        <v-btn @click="showModalRegister = true">Register</v-btn>
+                    </div>
                 </v-flex>
             </v-layout>
         </v-flex>
-
+        <v-dialog v-model="showModalRegister" width="700" v-if="selectedDevices">
+            <v-card pa-3="">
+                <v-card-title>Device is not registered, please register</v-card-title>
+                <v-card-text>
+                    <g-field :fields="gfield" :model="selectedDevices"></g-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-btn flat="" @click="onSaveDevice">Save</v-btn>
+                    <v-btn flat="" @click="showModalRegister=false">Cancel</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-layout>
 </template>
 <script>
@@ -194,20 +241,54 @@ var _default = {
     playlist: [],
     onlineDevices: [],
     lastOnline: null,
-    schedule: []
+    schedule: [],
+    freeStorage: {},
+    showModalRegister: false
   }),
   props: {
     source: String
   },
   computed: {
     sortedDevices() {
-      return this.devices.sort((a, b) => {
-        return this.onlineDevices.includes(b._id) ? 1 : -1;
+      return [...this.devices].sort((a, b) => {
+        // console.log(this.onlineDevices.includes(b._id) - this.onlineDevices.includes(a._id));
+        return this.onlineDevices.includes(b._id) - this.onlineDevices.includes(a._id) || a.isRegistered || false - b.isRegistered || false;
       });
+    },
+
+    gfield() {
+      const filterList = ['token', 'resolution', 'deviceCode', 'isRegistered'];
+      return cms.Types.Device.form.filter(i => !filterList.includes(i.key));
     }
 
   },
   methods: {
+    toMegabytes(n) {
+      return Math.floor(n / 1048576);
+    },
+
+    onSaveDevice() {
+      cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, { ...this.selectedDevices,
+        isRegistered: true
+      }).then(res => {
+        this.getDevices().then(() => {
+          this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
+        });
+        this.showModalRegister = false;
+
+        if (this.onlineDevices.includes(this.selectedDevices._id)) {
+          _axios.default.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
+            deviceId: this.selectedDevices._id
+          }).then(res => {
+            console.log(res);
+          }).catch(err => {
+            console.log(err);
+          });
+        }
+      });
+    },
+
     isOnline(device) {
       return this.onlineDevices.indexOf(device._id) > -1;
     },
@@ -245,16 +326,16 @@ var _default = {
       });
     },
 
-    getDevices() {
+    async getDevices() {
       const Model = cms.getModel('Device');
-      Model.find({}).then(res => {
-        console.log(res);
-        this.devices = res;
-      });
+      this.devices = await Model.find({});
     },
 
     selectItem(item) {
-      this.selectedDevices = item;
+      this.selectedDevices = item; // if (!item.isRegistered) {
+      //   this.showModalRegister = true;
+      // }
+
       this.files = [];
       this.connecting = true;
       this.error = null;
@@ -287,6 +368,16 @@ var _default = {
       }).then(res => {
         console.log(res);
         this.schedule = res.data.data;
+      }).catch(err => {
+        console.log(err);
+      });
+
+      _axios.default.post(cms.baseUrl + 'digital/p2p', {
+        event: 'APP_ACTION_PUSH_DEVICE_STORAGE',
+        deviceId: item._id
+      }).then(res => {
+        console.log(res);
+        this.freeStorage = res.data.data;
       }).catch(err => {
         console.log(err);
       });

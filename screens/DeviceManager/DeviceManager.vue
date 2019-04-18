@@ -310,7 +310,15 @@
         return Math.floor(n / 1048576);
       },
       onSaveDevice() {
-        cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, { ...this.selectedDevices, isRegistered: true })
+        const data = {
+          name: this.selectedDevices.name,
+          os: this.selectedDevices.os,
+          'os-version': this.selectedDevices['os-version'],
+          model: this.selectedDevices.model,
+          location: this.selectedDevices.location,
+          isRegistered: true
+        };
+        cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data)
           .then(res => {
             this.getDevices()
               .then(() => {
@@ -347,7 +355,11 @@
         return !this.files.includes(name);
       },
       connectSocket() {
-        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
+        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web', {
+          query: {
+            token: localStorage.getItem('__token')
+          }
+        });
         this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
         this.$options.socket.on('WEB_EVENT_LIST_FILE', files => {
           console.log('hello');

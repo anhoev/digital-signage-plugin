@@ -79,7 +79,11 @@
       };
     },
     mounted() {
-      this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
+      this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web', {
+        query: {
+          token: localStorage.getItem('__token')
+        }
+      });
       this.$options.socket.on('connect', () => {
         this.$options.socket.emit('WEB_LISTENER_VIEW_PROGRESS');
       });

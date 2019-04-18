@@ -269,9 +269,15 @@ var _default = {
     },
 
     onSaveDevice() {
-      cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, { ...this.selectedDevices,
+      const data = {
+        name: this.selectedDevices.name,
+        os: this.selectedDevices.os,
+        'os-version': this.selectedDevices['os-version'],
+        model: this.selectedDevices.model,
+        location: this.selectedDevices.location,
         isRegistered: true
-      }).then(res => {
+      };
+      cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data).then(res => {
         this.getDevices().then(() => {
           this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
         });
@@ -313,7 +319,11 @@ var _default = {
     },
 
     connectSocket() {
-      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web');
+      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web', {
+        query: {
+          token: localStorage.getItem('__token')
+        }
+      });
       this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
       this.$options.socket.on('WEB_EVENT_LIST_FILE', files => {
         console.log('hello');

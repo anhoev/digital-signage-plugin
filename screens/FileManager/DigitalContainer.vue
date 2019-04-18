@@ -196,7 +196,7 @@
           .then(i => i.json())
           .then(res => {
             this.devices = res.data;
-          });
+          }).catch(e => console.error(e, 'sd'));
       },
       selectFile(item) {
         if (!this.selected.some(i => i.path === item.path)) {
@@ -217,7 +217,7 @@
             this.items = item.tree.children;
             // this.current = item.tree;
             this.refreshCurrentItem([item.tree]);
-          });
+          }).catch(e => console.error(e, 'sd'));
       },
       refreshCurrentItem(items, stack = []) {
         if (this.current) {
@@ -393,7 +393,13 @@
         this.selected = this.selected.filter(i => i !== item);
       },
       connectSocket() {
-        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
+        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web', {
+          query: {
+            token: localStorage.getItem('__token')
+          }
+        });
+
+        this.$options.socket.on('error', a => console.log(a));
         console.log('connect');
 
         this.$options.socket.on('WEB_EVENT_FILE_PROGRESS', res => {

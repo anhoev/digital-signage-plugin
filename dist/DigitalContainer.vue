@@ -178,7 +178,7 @@ var _default = {
     getDevices() {
       fetch(cms.baseUrl + 'digital/devices').then(i => i.json()).then(res => {
         this.devices = res.data;
-      });
+      }).catch(e => console.error(e, 'sd'));
     },
 
     selectFile(item) {
@@ -200,7 +200,7 @@ var _default = {
         this.items = item.tree.children; // this.current = item.tree;
 
         this.refreshCurrentItem([item.tree]);
-      });
+      }).catch(e => console.error(e, 'sd'));
     },
 
     refreshCurrentItem(items, stack = []) {
@@ -394,7 +394,12 @@ var _default = {
     },
 
     connectSocket() {
-      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web');
+      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web', {
+        query: {
+          token: localStorage.getItem('__token')
+        }
+      });
+      this.$options.socket.on('error', a => console.log(a));
       console.log('connect');
       this.$options.socket.on('WEB_EVENT_FILE_PROGRESS', res => {
         this.progress = res;

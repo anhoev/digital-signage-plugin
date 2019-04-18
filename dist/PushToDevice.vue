@@ -85,7 +85,11 @@ var _default = {
 
   methods: {
     connectSocket() {
-      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web');
+      this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web', {
+        query: {
+          token: localStorage.getItem('__token')
+        }
+      });
       this.$options.socket.on('connect', () => {
         this.$options.socket.emit('WEB_LISTENER_GET_ONLINE_DEVICE');
       });

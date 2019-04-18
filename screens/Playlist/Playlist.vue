@@ -48,7 +48,8 @@
                                             <v-list-tile-sub-title class="sub-title">path: {{item.media.path}}
                                             </v-list-tile-sub-title>
                                             <v-list-tile-sub-title class="sub-title">
-                                                {{item.media.resolution}}, {{item.media.duration}}s ({{item.media.type}})
+                                                {{item.media.resolution}}, {{item.media.duration}}s
+                                                ({{item.media.type}})
                                             </v-list-tile-sub-title>
                                         </v-list-tile-content>
                                     </v-list-tile>
@@ -63,8 +64,9 @@
                             </v-list>
                             <v-card-actions>
                                 <v-btn @click="dialogPushToDevice=true" flat color="blue"
-                                :disabled="selectedPlaylist.content.length===0"
-                                >Push</v-btn>
+                                       :disabled="selectedPlaylist.content.length===0"
+                                >Push
+                                </v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-flex>
@@ -156,7 +158,11 @@
         });
       },
       connectSocket() {
-        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web');
+        this.$options.socket = io.connect(cms.baseUrl + 'file-manager-web', {
+          query: {
+            token: localStorage.getItem('__token')
+          }
+        });
         this.$options.socket.on('WEB_EVENT_PLAYLIST_PROGRESS', res => {
           this.progress = res;
         });

@@ -325,16 +325,14 @@
                 this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
               });
             this.showModalRegister = false;
-            if (this.onlineDevices.includes(this.selectedDevices._id)) {
-              axios.post(cms.baseUrl + 'digital/p2p', {
-                event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
-                deviceId: this.selectedDevices._id
-              }).then(res => {
-                console.log(res);
-              }).catch(err => {
-                console.log(err);
-              });
-            }
+            axios.post(cms.baseUrl + 'digital/p2p', {
+              event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
+              deviceId: this.selectedDevices._id
+            }).then(res => {
+              console.log(res);
+            }).catch(err => {
+              console.log(err);
+            });
           });
       },
       isOnline(device) {

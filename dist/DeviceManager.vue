@@ -283,16 +283,14 @@ var _default = {
         });
         this.showModalRegister = false;
 
-        if (this.onlineDevices.includes(this.selectedDevices._id)) {
-          _axios.default.post(cms.baseUrl + 'digital/p2p', {
-            event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
-            deviceId: this.selectedDevices._id
-          }).then(res => {
-            console.log(res);
-          }).catch(err => {
-            console.log(err);
-          });
-        }
+        _axios.default.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
+          deviceId: this.selectedDevices._id
+        }).then(res => {
+          console.log(res);
+        }).catch(err => {
+          console.log(err);
+        });
       });
     },
 

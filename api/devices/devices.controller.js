@@ -23,13 +23,14 @@ const DeviceSchema = Joi.object().keys({
 
 module.exports.register = function (req, res) {
 
-  const info = {
-    'token': req.body.token,
-    'os': req.body.os,
-    'os-version': req.body.osVersion,
-    'model': req.body.model,
-    'resolution': req.body.resolution
-  };
+  const info = {};
+  for (let key in req.body) {
+    if (key === 'osVersion') {
+      info['os-version'] = req.body.osVersion;
+    } else {
+      info[key] = req.body[key];
+    }
+  }
 
   const validate = DeviceSchema.validate(info);
   if (validate.error) {

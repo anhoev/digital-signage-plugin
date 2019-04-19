@@ -43,7 +43,7 @@
     },
     methods: {
       onClick() {
-        this.$emit('create', this.folderName);
+        this.$emit('create', (this.folderName || '').trim());
       }
     }
   };

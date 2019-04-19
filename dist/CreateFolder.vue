@@ -39,7 +39,7 @@ var _default = {
 
   methods: {
     onClick() {
-      this.$emit('create', this.folderName);
+      this.$emit('create', (this.folderName || '').trim());
     }
 
   }

@@ -186,6 +186,7 @@
                                 <v-btn @click="deleteDeviceData">
                                     Delete all device data
                                 </v-btn>
+                                <map-maker :lat="selectedDevices.coordinates.latitude" :lng="selectedDevices.coordinates.longitude"></map-maker>
                             </v-card>
                         </v-tab-item>
                     </v-tabs-items>

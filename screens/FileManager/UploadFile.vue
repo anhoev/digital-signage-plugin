@@ -19,6 +19,13 @@
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
+
+            <v-btn
+                    flat
+                    @click="$emit('close')"
+            >
+                Cancel
+            </v-btn>
             <v-btn
                     color="primary"
                     flat

@@ -35,8 +35,8 @@
             </v-layout>
         </v-card-text>
         <v-card-actions>
-            <v-btn flat color="red" @click="$emit('remove-file', deleteItem, playlist, schedule)">Delete all</v-btn>
             <v-btn flat color="orange" @click="$emit('close-dialog')">Cancel</v-btn>
+            <v-btn flat color="red" @click="$emit('remove-file', deleteItem, playlist, schedule)">Delete all</v-btn>
         </v-card-actions>
     </v-card>
 </template>

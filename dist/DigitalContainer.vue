@@ -51,13 +51,13 @@
             </v-layout>
         </v-container>
         <v-dialog v-model="dialogPushToDevice" width="500">
-            <push-to-device v-if="dialogPushToDevice" :online-devices="onlineDevices" :devices="devices" @push-notify="pushNotify">
+            <push-to-device :model.sync="dialogPushToDevice" v-if="dialogPushToDevice" :online-devices="onlineDevices" :devices="devices" @push-notify="pushNotify">
         </push-to-device></v-dialog>
         <v-dialog v-model="dialogUploadFile" width="300">
-            <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress"></upload-file>
+            <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress" @close="dialogUploadFile = false"></upload-file>
         </v-dialog>
         <v-dialog v-model="dialogCreateFolder" width="300">
-            <create-folder :key="dialogCreateFolder" @create="newFolder"></create-folder>
+            <create-folder :key="dialogCreateFolder" @create="newFolder" @close="dialogCreateFolder = false"></create-folder>
         </v-dialog>
         <v-dialog v-model="trackProgressModel" width="1200">
             <div style="height: 90vh; background: #fff; overflow: auto">

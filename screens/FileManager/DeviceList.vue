@@ -29,7 +29,8 @@
                                     <td style="max-width: 400px">
                                         <v-list-tile-title>{{item.media.name}}</v-list-tile-title>
                                         <v-list-tile-sub-title>path: {{item.media.path}}</v-list-tile-sub-title>
-                                        <v-list-tile-sub-title>{{item.media.resolution}}, {{item.media.duration}}s ({{item.media.type}})
+                                        <v-list-tile-sub-title>{{item.media.resolution}}, {{item.media.duration}}s
+                                            ({{item.media.type}})
                                         </v-list-tile-sub-title>
                                     </td>
                                     <td>
@@ -48,6 +49,13 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
+                    <v-btn
+                            color="orange"
+                            flat
+                            @click="showDialogCreatePlaylist=false"
+                    >
+                        Cancel
+                    </v-btn>
                     <v-btn
                             color="green"
                             flat

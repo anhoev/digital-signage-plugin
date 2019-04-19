@@ -28,6 +28,7 @@
 
                 </v-layout>
                 <v-card-actions style="position: absolute; bottom: 0">
+                    <v-btn @click="$emit('update:model', false)" flat>Cancel</v-btn>
                     <v-btn @click="capture" flat>Capture</v-btn>
                     <v-btn @click="onClickSave" flat>Save</v-btn>
                 </v-card-actions>
@@ -51,6 +52,7 @@
                     <v-divider></v-divider>
                     <v-card-actions>
                         <v-spacer></v-spacer>
+                        <v-btn @click="$emit('update:model', false)" flat>Cancel</v-btn>
                         <v-btn
                                 color="primary"
                                 flat

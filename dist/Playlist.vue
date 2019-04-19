@@ -1,7 +1,7 @@
 <template>
     <v-layout row="" style="height: 100%">
         <v-dialog v-model="dialogPushToDevice" width="500">
-            <push-to-device :devices="devices" :online-devices="onlineDevices" @push-notify="pushNotify">
+            <push-to-device :devices="devices" :model.sync="dialogPushToDevice" :online-devices="onlineDevices" @push-notify="pushNotify">
         </push-to-device></v-dialog>
         <v-dialog v-model="trackProgressModel" width="1200">
             <div style="height: 90vh; background: #fff; overflow: auto">

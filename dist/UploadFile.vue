@@ -15,6 +15,10 @@
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
+
+            <v-btn flat="" @click="$emit('close')">
+                Cancel
+            </v-btn>
             <v-btn color="primary" flat="" @click="$emit('upload', $refs.file.files[0])">
                 Upload
             </v-btn>

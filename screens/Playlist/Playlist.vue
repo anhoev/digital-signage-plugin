@@ -3,6 +3,7 @@
         <v-dialog v-model="dialogPushToDevice" width="500">
             <push-to-device
                     :devices="devices"
+                    :model.sync="dialogPushToDevice"
                     :online-devices="onlineDevices"
                     @push-notify="pushNotify"
             />

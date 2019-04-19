@@ -235,9 +235,9 @@
                                     </div>
                                 </div>
 
-                                <!--                                <v-btn>-->
-                                <!--                                    Delete all device data-->
-                                <!--                                </v-btn>-->
+                                <v-btn @click="deleteDeviceData">
+                                    Delete all device data
+                                </v-btn>
                             </v-card>
                         </v-tab-item>
                     </v-tabs-items>
@@ -306,6 +306,16 @@
       }
     },
     methods: {
+      deleteDeviceData() {
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_DELETE_DEVICE_DATA',
+          deviceId: this.selectedDevices._id
+        }).then(res => {
+          this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
+        }).catch(err => {
+          console.log(err);
+        });
+      },
       toMegabytes(n) {
         return Math.floor(n / 1048576);
       },

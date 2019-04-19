@@ -1,14 +1,14 @@
 <template>
     <div style="margin-bottom: -15px">
         <!--        {{model}}-->
-        <div>Schedule Name: {{model.name}}</div>
-        <div>Time: from {{model.activeFrom}} to {{model.activeTo}}</div>
-        <div>Weekday schedule:</div>
-        <div v-for="item in model.weekdaySchedule">
+        <div class="subheading primary--text">{{model.name}}</div>
+        <div class="grey--text text--darken-2">{{activeFrom}} to {{activeTo}}</div>
+        <v-divider style="margin: 10px 0"></v-divider>
+        <v-subheader style="padding: 0" v-for="item in model.weekdaySchedule">
             {{item.weekdays.join(', ')}}, {{item.from}} - {{item.to}}{{item.in==='next day'? '(Next Day)':''}} :
             {{item.playlist.name}}
-        </div>
-        <v-btn @click="show=true" flat="" color="orange">Push</v-btn>
+        </v-subheader>
+        <v-btn style="margin: 10px 0 10px -7px" @click="show=true" flat="" color="orange">Push</v-btn>
         <v-dialog v-model="show" width="600">
             <push-to-device v-if="show" :isolate="true" @push-notify="pushSchedule"></push-to-device>
         </v-dialog>
@@ -29,6 +29,8 @@ exports.default = void 0;
 
 var _axios = _interopRequireDefault(require("axios"));
 
+var _dayjs = _interopRequireDefault(require("dayjs"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _default = {
@@ -42,6 +44,16 @@ var _default = {
     };
   },
 
+  computed: {
+    activeFrom() {
+      return (0, _dayjs.default)(this.model.activeFrom).format('DD.MM.YYYY');
+    },
+
+    activeTo() {
+      return (0, _dayjs.default)(this.model.activeTo).format('DD.MM.YYYY');
+    }
+
+  },
   methods: {
     pushSchedule(devices, socket) {
       // const device = devices[0];

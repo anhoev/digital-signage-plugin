@@ -85,6 +85,20 @@
       "schemaType": "string",
       "key": "deviceCode",
       "type": "input"
+    },
+    {
+      "_id": "5cb82b16c9f2b117b765f39f",
+      "schemaType": "string",
+      "key": "longitude",
+      "type": "input",
+      "flex": "md6"
+    },
+    {
+      "_id": "5cb82b16c9f2b117b765f39e",
+      "schemaType": "string",
+      "key": "latitude",
+      "type": "input",
+      "flex": "md6"
     }
   ],
   "id": "5c9466cd9355686e4f94d19c",

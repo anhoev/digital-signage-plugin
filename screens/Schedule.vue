@@ -1,14 +1,14 @@
 <template>
     <div style="margin-bottom: -15px">
         <!--        {{model}}-->
-        <div>Schedule Name: {{model.name}}</div>
-        <div>Time: from {{model.activeFrom}} to {{model.activeTo}}</div>
-        <div>Weekday schedule:</div>
-        <div v-for="item in model.weekdaySchedule">
+        <div class="subheading primary--text">{{model.name}}</div>
+        <div class="grey--text text--darken-2">{{activeFrom}} to {{activeTo}}</div>
+        <v-divider style="margin: 10px 0"></v-divider>
+        <v-subheader style="padding: 0" v-for="item in model.weekdaySchedule">
             {{item.weekdays.join(', ')}}, {{item.from}} - {{item.to}}{{item.in==='next day'? '(Next Day)':''}} :
             {{item.playlist.name}}
-        </div>
-        <v-btn @click="show=true" flat color="orange">Push</v-btn>
+        </v-subheader>
+        <v-btn style="margin: 10px 0 10px -7px" @click="show=true" flat color="orange">Push</v-btn>
         <v-dialog v-model="show" width="600">
             <push-to-device v-if="show" :isolate="true" @push-notify="pushSchedule"></push-to-device>
         </v-dialog>
@@ -22,6 +22,7 @@
 
 <script>
   import axios from 'axios';
+  import dayjs from 'dayjs';
 
   export default {
     name: 'Schedule',
@@ -31,6 +32,14 @@
         show: false,
         trackProgressModel: false
       };
+    },
+    computed: {
+      activeFrom() {
+        return dayjs(this.model.activeFrom).format('DD.MM.YYYY');
+      },
+      activeTo() {
+        return dayjs(this.model.activeTo).format('DD.MM.YYYY');
+      }
     },
     methods: {
       pushSchedule(devices, socket) {

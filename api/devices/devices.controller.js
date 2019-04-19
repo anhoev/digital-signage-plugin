@@ -19,8 +19,10 @@ const DeviceSchema = Joi.object().keys({
   name: Joi.string(),
   os: Joi.string(),
   'os-version': Joi.string(),
-  longitude: Joi.string(),
-  latitude: Joi.string()
+  coordinates: Joi.object().keys({
+    longitude: Joi.number(),
+    latitude: Joi.number()
+  })
 });
 
 module.exports.register = function (req, res) {

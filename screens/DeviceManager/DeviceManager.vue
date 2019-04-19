@@ -238,7 +238,8 @@
                                 <v-btn @click="deleteDeviceData">
                                     Delete all device data
                                 </v-btn>
-                                <map-maker :lat="selectedDevices.coordinates.latitude" :lng="selectedDevices.coordinates.longitude"></map-maker>
+                                <map-maker :lat="selectedDevices.coordinates.latitude"
+                                           :lng="selectedDevices.coordinates.longitude"></map-maker>
                             </v-card>
                         </v-tab-item>
                     </v-tabs-items>
@@ -246,7 +247,12 @@
                 <v-flex v-else-if="selectedDevices && !selectedDevices.isRegistered">
                     <div class="pa-5">
                         Device is not register
-                        <v-btn @click="showModalRegister = true">Register</v-btn>
+                        <v-btn @click="showModalRegister = true" depressed>Register</v-btn>
+                        <div class="ma-5"></div>
+                        <div style="max-width: 700px">
+                            <map-maker :lat="selectedDevices.coordinates.latitude"
+                                       :lng="selectedDevices.coordinates.longitude"></map-maker>
+                        </div>
                     </div>
                 </v-flex>
             </v-layout>

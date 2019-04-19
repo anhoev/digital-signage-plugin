@@ -194,7 +194,11 @@
                 <v-flex v-else-if="selectedDevices &amp;&amp; !selectedDevices.isRegistered">
                     <div class="pa-5">
                         Device is not register
-                        <v-btn @click="showModalRegister = true">Register</v-btn>
+                        <v-btn @click="showModalRegister = true" depressed="">Register</v-btn>
+                        <div class="ma-5"></div>
+                        <div style="max-width: 700px">
+                            <map-maker :lat="selectedDevices.coordinates.latitude" :lng="selectedDevices.coordinates.longitude"></map-maker>
+                        </div>
                     </div>
                 </v-flex>
             </v-layout>

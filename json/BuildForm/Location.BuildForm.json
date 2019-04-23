@@ -1,15 +1,23 @@
 {
   "_id": "5c6824941d616c3dda444c7d",
-  "extensions": [],
+  "__v": 0,
   "alwaysLoad": true,
-  "title": "owner",
+  "extensions": [],
   "fields": [
+    {
+      "_id": "5cbd5a752f2d890012cad61f",
+      "schemaType": "string",
+      "key": "name",
+      "type": "input",
+      "flex": "md6"
+    },
     {
       "_id": "5c6825641d616c3dda444c80",
       "schemaType": "string",
       "key": "owner",
       "type": "input",
-      "fields": []
+      "fields": [],
+      "flex": "md6"
     },
     {
       "_id": "5c6825641d616c3dda444c7f",
@@ -52,9 +60,9 @@
       "type": "input"
     }
   ],
-  "tabs": [],
   "id": "5c6824941d616c3dda444c7d",
   "name": "Location",
-  "type": "Collection",
-  "__v": 0
+  "tabs": [],
+  "title": "name",
+  "type": "Collection"
 }

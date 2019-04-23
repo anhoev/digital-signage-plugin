@@ -1,7 +1,7 @@
 <template>
     <v-layout row style="height: 100%">
         <v-flex shrink
-                style="border-right: 1px solid #ddd; max-width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
+                style="border-right: 1px solid #ddd; max-width: 300px;min-width:272px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
             <v-list dense two-line avatar>
                 <template v-for="(item, index) in sortedDevices"
                 >
@@ -32,7 +32,7 @@
 
             </v-list>
         </v-flex>
-        <v-flex style="border-left: 1px solid #ddd; flex: 1">
+        <v-flex style="border-left: 1px solid #ddd; flex: 1;min-width: 0">
             <v-layout row wrap>
                 <v-flex shrink md12 v-if="error">
                     <v-card-title>{{error}}</v-card-title>
@@ -126,10 +126,6 @@
                                                 </v-list-tile-content>
                                                 <v-list-tile-action>
                                                     <v-layout row>
-                                                        <v-btn ripple
-                                                               @click.prevent.stop="activePlaylist(item)">
-                                                            Active
-                                                        </v-btn>
                                                         <v-btn icon ripple
                                                                @click.prevent.stop="deletePlaylist(item)">
                                                             <v-icon color="grey lighten-1">delete</v-icon>
@@ -238,8 +234,7 @@
                                 <v-btn @click="deleteDeviceData">
                                     Delete all device data
                                 </v-btn>
-                                <map-maker v-if="selectedDevices.coordinates"
-                                           :lat="selectedDevices.coordinates.latitude"
+                                <map-maker :lat="selectedDevices.coordinates.latitude"
                                            :lng="selectedDevices.coordinates.longitude"></map-maker>
                             </v-card>
                         </v-tab-item>
@@ -250,7 +245,7 @@
                         Device is not register
                         <v-btn @click="showModalRegister = true" depressed>Register</v-btn>
                         <div class="ma-5"></div>
-                        <div style="max-width: 700px" v-if="selectedDevices.coordinates">
+                        <div style="max-width: 700px">
                             <map-maker :lat="selectedDevices.coordinates.latitude"
                                        :lng="selectedDevices.coordinates.longitude"></map-maker>
                         </div>

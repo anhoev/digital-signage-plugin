@@ -1,5 +1,5 @@
 <template>
-    <div style="margin-bottom: -15px">
+    <div style="padding: 15px">
         <!--        {{model}}-->
         <div class="subheading primary--text">{{model.name}}</div>
         <div class="grey--text text--darken-2">{{activeFrom}} to {{activeTo}}</div>
@@ -10,7 +10,7 @@
         </v-subheader>
         <v-btn style="margin: 10px 0 10px -7px" @click="show=true" flat="" color="orange">Push</v-btn>
         <v-dialog v-model="show" width="600">
-            <push-to-device v-if="show" :isolate="true" @push-notify="pushSchedule"></push-to-device>
+            <push-to-device v-if="show" :isolate="true" @push-notify="pushSchedule" :model.sync="show"></push-to-device>
         </v-dialog>
         <v-dialog v-model="trackProgressModel" width="1200">
             <div style="height: 90vh; background: #fff; overflow: auto">
@@ -67,6 +67,7 @@ var _default = {
       //   console.log(err);
       // });
       socket.emit('WEB_LISTENER_PUSH_SCHEDULE', devices, this.model._id, a => {
+        this.show = false;
         this.trackProgressModel = true;
       });
     }

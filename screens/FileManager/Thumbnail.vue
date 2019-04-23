@@ -1,10 +1,12 @@
 <template>
-    <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>
+    <!--    <i class="far fa-folder grid-icon" v-if="item.type==='directory'"></i>-->
+    <img src="/plugins/digital-signage-plugin/screens/FileManager/icon/folder_icon.svg" v-if="item.type==='directory'"
+         class="preview-image" />
     <img :src="item.thumbnail" v-else-if="item.thumbnail" class="preview-image" />
-<!--    <video :src="getPreviewUrl(item.path)" class="preview-image"-->
-<!--           v-else-if="isVideo(item.extension || item.ext)"></video>-->
-<!--    <img :src="getPreviewUrl(item.path)" class="preview-image"-->
-<!--         v-else-if="isImage(item.extension  || item.ext)" />-->
+    <!--    <video :src="getPreviewUrl(item.path)" class="preview-image"-->
+    <!--           v-else-if="isVideo(item.extension || item.ext)"></video>-->
+    <!--    <img :src="getPreviewUrl(item.path)" class="preview-image"-->
+    <!--         v-else-if="isImage(item.extension  || item.ext)" />-->
     <i class="far fa-file grid-icon" v-else></i>
 </template>
 

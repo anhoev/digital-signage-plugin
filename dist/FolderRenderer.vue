@@ -1,7 +1,7 @@
 <template>
     <v-layout v-if="layout === 'grid'" wrap="" row="">
         <v-flex md2="" v-for="item in items" pa-2="" class="grid" :key="item.path">
-            <v-card center="" style="cursor: pointer; user-select: none;" @click="select(item)" :class="isSelected(item)?'selected-file':''">
+            <v-card center="" class="file-card" @click="select(item)" :class="isSelected(item)?'selected-file':''">
                 <!--                <i class="fas fa-check"></i>-->
                 <v-flex center="" pa-4="" pt-5="" pb-2="">
                     <thumbnail :item="getThumbnailItem(item)"></thumbnail>
@@ -37,7 +37,7 @@
     </v-layout>
     <v-layout v-else="" row="" wrap="">
         <v-flex md12="" v-for="item in items" ma-1="" style="position: relative" :key="item.path">
-            <v-card center="" style="cursor: pointer; user-select: none;" @click="select(item)" :class="isSelected(item)?'selected-file':''">
+            <v-card center="" class="file-card" @click="select(item)" :class="isSelected(item)?'selected-file':''">
                 <v-layout row="" wrap="" py-2="">
                     <v-flex shrink="" center="" pa-4="" style="font-size: 30px; width: 100px">
                         <thumbnail :item="getThumbnailItem(item)"></thumbnail>
@@ -161,10 +161,14 @@ exports.default = _default;
   opacity: 0.4; }
   .hoverIcon:hover {
     opacity: 1; }
+
+.file-card {
+  cursor: pointer;
+  user-select: none; }
 </style>
 <style>
     .selected-file {
-        background-color: #ecf2fc!important;
-        color: #1c3ffff7!important;;
+        background-color: #ecf2fc !important;
+        color: #1c3ffff7 !important;;
     }
 </style>

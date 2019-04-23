@@ -1,7 +1,7 @@
 <template>
     <v-layout v-if="layout === 'grid'" wrap row>
         <v-flex md2 v-for="item in items" pa-2 class="grid" :key="item.path">
-            <v-card center style="cursor: pointer; user-select: none;"
+            <v-card center class="file-card"
                     @click="select(item)"
                     :class="isSelected(item)?'selected-file':''"
             >
@@ -53,7 +53,7 @@
     </v-layout>
     <v-layout v-else row wrap>
         <v-flex md12 v-for="item in items" ma-1 style="position: relative" :key="item.path">
-            <v-card center style="cursor: pointer; user-select: none;"
+            <v-card center class="file-card"
                     @click="select(item)"
                     :class="isSelected(item)?'selected-file':''"
             >
@@ -181,11 +181,16 @@
             opacity: 1;
         }
     }
+
+    .file-card {
+        cursor: pointer;
+        user-select: none;
+    }
 </style>
 
 <style>
     .selected-file {
-        background-color: #ecf2fc!important;
-        color: #1c3ffff7!important;;
+        background-color: #ecf2fc !important;
+        color: #1c3ffff7 !important;;
     }
 </style>

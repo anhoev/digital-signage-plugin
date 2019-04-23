@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="79px" height="70px" viewBox="0 0 79 70" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>folder icon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Page-0.0---File-manager-1-view-smail" transform="translate(-636.000000, -286.000000)">
+            <g id="Group-2" transform="translate(426.000000, 245.000000)">
+                <g id="#1-copy" transform="translate(174.000000, 0.000000)">
+                    <g id="folder--copy-8" transform="translate(0.000000, 0.000000)">
+                        <g id="folder-icon" transform="translate(36.000000, 41.000000)">
+                            <path d="M0.62627508,24.9739527 L0.62627508,6.89283135 C0.62627508,3.57912285 3.31256658,0.892831347 6.62627508,0.892831347 L32.4282805,0.892831347 L44.8527384,10.0180345 L74.6762108,10.0180345 C76.8853498,10.0180345 78.6762108,11.8088955 78.6762108,14.0180345 L78.6762108,22.8272842 L0.62627508,24.9739527 Z" id="Path-2" fill="#4A90E2"></path>
+                            <path d="M0.126760563,17.5790871 C0.126760563,15.3751687 1.92169173,13.5885398 4.11787616,13.5885398 L74.9807663,13.5885398 C77.1849986,13.5885398 78.9718819,15.3762458 78.9718819,17.5790871 L78.9718819,65.7113105 C78.9718819,67.915229 77.1769507,69.7018579 74.9807663,69.7018579 L4.11787616,69.7018579 C1.91364388,69.7018579 0.126760563,67.9141519 0.126760563,65.7113105 L0.126760563,17.5790871 Z" id="Rectangle-path" fill="#7CB9FF"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

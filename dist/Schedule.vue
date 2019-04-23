@@ -6,7 +6,7 @@
         <v-divider style="margin: 10px 0"></v-divider>
         <v-subheader style="padding: 0" v-for="item in model.weekdaySchedule">
             {{item.weekdays.join(', ')}}, {{item.from}} - {{item.to}}{{item.in==='next day'? '(Next Day)':''}} :
-            {{item.playlist.name}}
+            <span v-if="item.playlist">{{item.playlist.name}}</span>
         </v-subheader>
         <v-btn style="margin: 10px 0 10px -7px" @click="show=true" flat="" color="orange">Push</v-btn>
         <v-dialog v-model="show" width="600">

@@ -6,6 +6,8 @@ const contentHistoryApi = require('./api/content-history');
 const fileSocket = require('./api/socket/filemanager.socket');
 const path = require('path');
 
+// test commit
+
 module.exports = cms => {
   cms.app.use('/digital/video', videoApi);
   cms.app.use('/digital/config', configApi);

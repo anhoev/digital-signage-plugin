@@ -1,0 +1,24 @@
+{
+  "_id": "5cc011d88fde03166c775da7",
+  "__v": 0,
+  "extensions": [],
+  "fields": [
+    {
+      "_id": "5cc0120d8fde03166c775daa",
+      "schemaType": "string",
+      "key": "releaseVersion",
+      "type": "input"
+    },
+    {
+      "_id": "5cc0120d8fde03166c775da9",
+      "schemaType": "string",
+      "key": "linkDownload",
+      "type": "input"
+    }
+  ],
+  "id": "5cc011d88fde03166c775da7",
+  "name": "ApkVersion",
+  "tabs": [],
+  "title": "releaseVersion",
+  "type": "Collection"
+}

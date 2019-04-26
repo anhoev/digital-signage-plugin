@@ -124,6 +124,8 @@ var _default = {
     },
 
     remove(item) {
+      console.log(item);
+
       if (item.type === 'file') {
         this.$emit('remove-file', item);
       }

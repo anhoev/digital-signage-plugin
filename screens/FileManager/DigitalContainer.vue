@@ -78,13 +78,15 @@
                 v-model="dialogUploadFile"
                 width="300"
         >
-            <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress" @close="dialogUploadFile = false"></upload-file>
+            <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress"
+                         @close="dialogUploadFile = false"></upload-file>
         </v-dialog>
         <v-dialog
                 v-model="dialogCreateFolder"
                 width="300"
         >
-            <create-folder :key="dialogCreateFolder" @create="newFolder" @close="dialogCreateFolder = false"></create-folder>
+            <create-folder :key="dialogCreateFolder" @create="newFolder"
+                           @close="dialogCreateFolder = false"></create-folder>
         </v-dialog>
         <v-dialog v-model="trackProgressModel" width="1200">
             <div style="height: 90vh; background: #fff; overflow: auto">
@@ -364,6 +366,8 @@
             if (res) {
               this.deletingItem = res;
               this.showDialogDelete = true;
+            } else {
+              this.removeFile(item);
             }
           }
         );
@@ -375,8 +379,8 @@
           this.getDirectory();
         });
       },
-      removeFile(item, playlists, schedule) {
-        console.log(arguments);
+      removeFile(item, playlists = [], schedule = []) {
+        console.log(item, playlists);
         Promise.all([
           fetch(`${cms.baseUrl}digital/video/delete?path=${item.path}`, {
             method: 'DELETE'

@@ -6,4 +6,12 @@ router.get('/', deviceController.getList);
 router.post('/register', deviceController.register);
 router.post('/push', deviceController.pushMessage);
 
+router.post('/testhook', (req, res) => {
+  console.log(req.body);
+  console.log(req);
+  res.status(200).json({ ok: 'ok' });
+});
+router.get('/testhook', (req, res) => {
+  console.log(req);
+});
 module.exports = router;

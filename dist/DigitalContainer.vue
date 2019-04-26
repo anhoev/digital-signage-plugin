@@ -358,6 +358,8 @@ var _default = {
         if (res) {
           this.deletingItem = res;
           this.showDialogDelete = true;
+        } else {
+          this.removeFile(item);
         }
       });
     },
@@ -370,8 +372,8 @@ var _default = {
       });
     },
 
-    removeFile(item, playlists, schedule) {
-      console.log(arguments);
+    removeFile(item, playlists = [], schedule = []) {
+      console.log(item, playlists);
       Promise.all([fetch(`${cms.baseUrl}digital/video/delete?path=${item.path}`, {
         method: 'DELETE'
       }), cms.getModel('Playlist').remove({

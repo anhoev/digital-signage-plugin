@@ -64,9 +64,10 @@
                                 </p>
                             </v-list>
                             <v-card-actions>
-                                <v-btn @click="dialogPushToDevice=true" flat color="blue"
+                                <v-btn @click="dialogPushToDevice=true" flat color="red"
                                        :disabled="selectedPlaylist.content.length===0"
-                                >Push
+                                >
+                                    Delete
                                 </v-btn>
                             </v-card-actions>
                         </v-card>

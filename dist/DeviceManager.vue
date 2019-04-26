@@ -24,7 +24,7 @@
 
             </v-list>
         </v-flex>
-        <v-flex style="border-left: 1px solid #ddd; flex: 1">
+        <v-flex style="border-left: 1px solid #ddd; flex: 1; min-width: 0">
             <v-layout row="" wrap="">
                 <v-flex shrink="" md12="" v-if="error">
                     <v-card-title>{{error}}</v-card-title>
@@ -95,9 +95,6 @@
                                                 </v-list-tile-content>
                                                 <v-list-tile-action>
                                                     <v-layout row="">
-                                                        <v-btn ripple="" @click.prevent.stop="activePlaylist(item)">
-                                                            Active
-                                                        </v-btn>
                                                         <v-btn icon="" ripple="" @click.prevent.stop="deletePlaylist(item)">
                                                             <v-icon color="grey lighten-1">delete</v-icon>
                                                         </v-btn>

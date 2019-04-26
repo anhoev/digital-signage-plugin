@@ -15,6 +15,7 @@ const dirtree = require('directory-tree');
 const Content = global.cms.getModel('Content');
 const getVideoInfo = require('get-video-info');
 const mime = require('mime-types');
+const fsExtra = require('fs-extra');
 
 function generatePartsFolderName(_path) {
   const fileNameWithOutExtension = path.basename(_path, path.extname(_path));
@@ -102,22 +103,10 @@ exports.newFolder = function (_path, name) {
 
 exports.deleteFile = function (_path) {
   const unlinkPath = path.join(config.imageStore, _path);
+  const pathParts = generatePartsFolderName(_path);
+  fs.unlink(unlinkPath);
+  fsExtra.removeSync(pathParts);
   return Promise.all([
-      new Promise((resolve, reject) => {
-        fs.unlink(unlinkPath, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            const pathParts = generatePartsFolderName(_path);
-            console.log(pathParts);
-            fileService.removeFolder(pathParts).then(() => {
-              resolve();
-            }).catch(err => {
-              reject(err);
-            });
-          }
-        });
-      }),
       Content.findOneAndRemove({ path: _path })
     ]
   );

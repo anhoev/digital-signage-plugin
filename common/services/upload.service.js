@@ -38,11 +38,16 @@ let disStorageMultiple = multer.diskStorage({
         })();
       }
     });
+    req.destination = pathUpload;
     return cb(null, pathUpload);
   },
   filename: function (req, file, cb) {
-    req.namebase = config.prefixFile + file.originalname;
-    return cb(null, config.prefixFile + file.originalname);
+    const name = config.prefixFile + file.originalname;
+    req.namebase = name;
+    if (req.query.replace && fs.existsSync(path.join(req.destination, req.namebase))) {
+      fs.unlink(path.join(req.destination, req.namebase));
+    }
+    return cb(null, name);
   }
 });
 

@@ -9,7 +9,7 @@ module.exports = _.merge(
     host: 'localhost',
     port: 8888,
     imageStore: global.cms.storage,
-    prefixFile: 'media_',
+    prefixFile: '',
     split_size: 524288,
     prefix_resource: {
       domain_download: 'http://localhost:8888',

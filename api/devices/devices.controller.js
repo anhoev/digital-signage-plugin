@@ -22,7 +22,8 @@ const DeviceSchema = Joi.object().keys({
   coordinates: Joi.object().keys({
     longitude: Joi.number(),
     latitude: Joi.number()
-  })
+  }),
+  appVersionCode: [Joi.string(), Joi.number()]
 });
 
 module.exports.register = function (req, res) {
@@ -60,3 +61,4 @@ module.exports.pushMessage = function (req, res) {
     .then((r) => res.status(200).json(r))
     .catch(err => res.status(400).json({ err }));
 };
+

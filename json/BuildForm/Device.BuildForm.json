@@ -25,8 +25,8 @@
       "type": "input@select",
       "optionsType": "onlyValue",
       "options": [
-        "Android",
-        "Ios"
+        "android",
+        "ios"
       ],
       "flex": "md4"
     },
@@ -51,9 +51,7 @@
       "ref": "Location",
       "type": "ref-select",
       "flex": "md4",
-      "labelProp": "name",
-      "addable": false,
-      "editable": true
+      "labelProp": "owner"
     },
     {
       "_id": "5c9ca66c2fda403ce07188ab",
@@ -104,13 +102,14 @@
           "key": "latitude",
           "type": "input@number"
         }
-      ]
+      ],
+      "addable": true
     }
   ],
   "id": "5c9466cd9355686e4f94d19c",
   "name": "Device",
   "tabs": [],
-  "title": "name",
   "type": "Collection",
+  "title": "name",
   "alwaysLoad": true
 }

@@ -66,7 +66,11 @@ var _default = {
       // }).catch(err => {
       //   console.log(err);
       // });
-      socket.emit('WEB_LISTENER_PUSH_SCHEDULE', devices, this.model._id, a => {
+      const data = {
+        devices: devices,
+        schedule: this.model._id
+      };
+      socket.emit('WEB_LISTENER_PUSH_SCHEDULE', data, () => {
         this.show = false;
         this.trackProgressModel = true;
       });

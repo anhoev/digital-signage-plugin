@@ -205,13 +205,19 @@ module.exports = cms => {
       socket.leave(`downloadFile`);
     });
 
-    socket.on(EVENT.WEB_LISTENER_PUSH_SCHEDULE, async (deviceIds, scheduleId, fn) => {
+    socket.on(EVENT.WEB_LISTENER_PUSH_SCHEDULE, async (data, fn) => {
+      const deviceIds = data.devices, scheduleId = data.schedule, jobId = data.job;
       Promise.all(deviceIds.map(async deviceId => {
         const deviceSocket = onlineDevices[deviceId];
         if (deviceSocket) {
           try {
             const schedule = await Schedule.findById(scheduleId);
-            const job = await Job.create({ device: deviceId, begin: new Date(), type: 'pushSchedule', status: null });
+            let job;
+            if (jobId) {
+              job = await Job.findById(jobId);
+            } else {
+              job = await Job.create({ device: deviceId, begin: new Date(), type: 'pushSchedule', status: null, scheduleId: scheduleId });
+            }
             deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_SCHEDULE, schedule, job);
           } catch (err) {
             return err.message;
@@ -331,7 +337,7 @@ module.exports = cms => {
               //   console.log('error on receive playlist', isValid.error.message);
               //   callbackOnViewPlaylist(isValid.error.message);
               // } else {
-                callbackOnViewPlaylist(null, playlist);
+              callbackOnViewPlaylist(null, playlist);
               // }
             }
           });

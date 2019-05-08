@@ -26,24 +26,30 @@
                             <v-list-tile-title :class="getClassByStatus(job.status)"> Status: {{job.status}}
                             </v-list-tile-title>
                         </v-list-tile-content>
+
+                        <v-list-tile-action v-if="job.status === 'fail'" @click="rePush(job.scheduleId, device._id, job._id)">
+                            <v-btn flat="">Re-push</v-btn>
+                        </v-list-tile-action>
                     </v-list-tile>
                 </v-list>
-                <v-divider></v-divider>
-                <v-list two-line="" subheader="">
-                    <v-list-tile v-for="item in data" :key="item.name" avatar="" class="py-2" @click="">
-                        <v-list-tile-avatar>
-                            <i class="far fa-file grid-icon"></i>
-                        </v-list-tile-avatar>
-                        <v-list-tile-content>
-                            <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
-                            <v-list-tile-sub-title>
-                                <div class="progress-bar-outer" v-if="item.progress!==1">
-                                    <div class="progress-bar" :style="{width: item.progress*100 + '%'}"></div>
-                                </div>
-                            </v-list-tile-sub-title>
-                        </v-list-tile-content>
-                    </v-list-tile>
-                </v-list>
+                <template v-if="data &amp;&amp; data.length > 0">
+                    <v-divider></v-divider>
+                    <v-list two-line="" subheader="">
+                        <v-list-tile v-for="item in data" :key="item.name" avatar="" class="py-2" @click="">
+                            <v-list-tile-avatar>
+                                <i class="far fa-file grid-icon"></i>
+                            </v-list-tile-avatar>
+                            <v-list-tile-content>
+                                <v-list-tile-title>name: {{item.name}}</v-list-tile-title>
+                                <v-list-tile-sub-title>
+                                    <div class="progress-bar-outer" v-if="item.progress!==1">
+                                        <div class="progress-bar" :style="{width: item.progress*100 + '%'}"></div>
+                                    </div>
+                                </v-list-tile-sub-title>
+                            </v-list-tile-content>
+                        </v-list-tile>
+                    </v-list>
+                </template>
             </v-card>
         </v-flex>
     </v-layout>
@@ -61,6 +67,8 @@ exports.default = void 0;
 
 var _socket = _interopRequireDefault(require("socket.io-client"));
 
+var _dayjs = _interopRequireDefault(require("dayjs"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _default = {
@@ -73,6 +81,7 @@ var _default = {
   },
 
   mounted() {
+    this.getFailedJob();
     this.$options.socket = _socket.default.connect(cms.baseUrl + 'file-manager-web', {
       query: {
         token: localStorage.getItem('__token')
@@ -123,6 +132,45 @@ var _default = {
             return 'red--text';
           }
       }
+    },
+
+    async getFailedJob() {
+      const Job = cms.getModel('Job');
+      const result = await Job.find({
+        $or: [{
+          status: 'fail',
+          scheduleId: {
+            $exists: true
+          }
+        }, {
+          begin: {
+            $gte: (0, _dayjs.default)().subtract(10, 'minutes').toDate()
+          }
+        }]
+      }).populate('device');
+      this.progress = result.map(item => {
+        const {
+          device,
+          ...job
+        } = item;
+        return {
+          device,
+          job
+        };
+      });
+    },
+
+    rePush(scheduleId, device, jobId) {
+      const data = {
+        devices: [device],
+        schedule: scheduleId,
+        job: jobId
+      };
+      this.$options.socket.emit('WEB_LISTENER_PUSH_SCHEDULE', data, err => {
+        if (err) {
+          alert(err);
+        }
+      });
     }
 
   }

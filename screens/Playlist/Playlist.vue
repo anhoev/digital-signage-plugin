@@ -13,6 +13,13 @@
                 <progress-tracking v-if="trackProgressModel" />
             </div>
         </v-dialog>
+        <v-dialog width="800" v-model="showDialogDelete">
+            <delete-playlist-dialog
+                    :model="showDialogDelete"
+                    :delete-item="deletingItem"
+                    @remove-file="removePlaylist"
+                    @close-dialog="showDialogDelete = false"></delete-playlist-dialog>
+        </v-dialog>
         <v-flex shrink style="border-right: 1px solid #ddd; width: 300px">
             <v-layout row wrap fill-height>
                 <v-list dense style="width: 100%"
@@ -64,7 +71,7 @@
                                 </p>
                             </v-list>
                             <v-card-actions>
-                                <v-btn @click="dialogPushToDevice=true" flat color="red"
+                                <v-btn @click="onClickDelete" flat color="red"
                                        :disabled="selectedPlaylist.content.length===0"
                                 >
                                     Delete
@@ -95,13 +102,30 @@
       selectedDevices: [],
       onlineDevices: [],
       dialogPushToDevice: false,
+      showDialogDelete: false,
       trackProgressModel: false,
+      deletingItem: null,
       progress: []
     }),
     props: {
       source: String
     },
     methods: {
+      onClickDelete() {
+        this.showDialogDelete = true;
+        this.deletingItem = this.selectedPlaylist;
+      },
+      removePlaylist(playlist, schedules = []) {
+        Promise.all([
+          cms.getModel('Playlist').remove({ _id: playlist._id }),
+          cms.getModel('Schedule').remove({ _id: { $in: schedules.map(i => i._id) } })
+        ])
+          .then(res => {
+            this.getPlaylist();
+            this.showDialogDelete = false;
+            console.log(res);
+          });
+      },
       isOnline(device) {
         return this.onlineDevices.indexOf(device._id) > -1;
       },

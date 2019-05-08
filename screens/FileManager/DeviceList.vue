@@ -57,6 +57,7 @@
                         Cancel
                     </v-btn>
                     <v-btn
+                            :disabled="!playlistName"
                             color="green"
                             flat
                             @click="createPlaylist"
@@ -125,6 +126,7 @@
         showDialogCreatePlaylist: false,
         playlistName: '',
         effectOptions: [
+          'noEffect',
           'fadeIn',
           'slideInUp',
           'slideInDown',

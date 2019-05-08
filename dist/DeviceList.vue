@@ -42,7 +42,7 @@
                     <v-btn color="orange" flat="" @click="showDialogCreatePlaylist=false">
                         Cancel
                     </v-btn>
-                    <v-btn color="green" flat="" @click="createPlaylist">
+                    <v-btn :disabled="!playlistName" color="green" flat="" @click="createPlaylist">
                         Create
                     </v-btn>
                 </v-card-actions>
@@ -105,7 +105,7 @@ var _default = {
     return {
       showDialogCreatePlaylist: false,
       playlistName: '',
-      effectOptions: ['fadeIn', 'slideInUp', 'slideInDown', 'slideInLeft', 'slideInRight', 'bounceIn', 'bounceInUp', 'bounceInDown', 'bounceInLeft', 'bounceInRight', 'zoomIn', 'zoomInDown', 'zoomInUp', 'zoomInLeft', 'zoomInRight'],
+      effectOptions: ['noEffect', 'fadeIn', 'slideInUp', 'slideInDown', 'slideInLeft', 'slideInRight', 'bounceIn', 'bounceInUp', 'bounceInDown', 'bounceInLeft', 'bounceInRight', 'zoomIn', 'zoomInDown', 'zoomInUp', 'zoomInLeft', 'zoomInRight'],
       playlist: []
     };
   },

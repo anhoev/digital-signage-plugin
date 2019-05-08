@@ -4,7 +4,6 @@
   "title": "name",
   "type": "Collection",
   "name": "Schedule",
-  "id": "5ca3274396a316f1ac376c96",
   "tabs": [],
   "extensions": [],
   "fields": [
@@ -73,7 +72,7 @@
           "type": "input@select",
           "optionsType": "onlyValue",
           "options": [
-            "this day",
+            "same day",
             "next day"
           ]
         },
@@ -98,5 +97,6 @@
       }
     }
   ],
-  "alwaysLoad": true
+  "alwaysLoad": true,
+  "id": "5ca3274396a316f1ac376c96"
 }

@@ -216,7 +216,16 @@ module.exports = cms => {
             if (jobId) {
               job = await Job.findById(jobId);
             } else {
-              job = await Job.create({ device: deviceId, begin: new Date(), type: 'pushSchedule', status: null, scheduleId: scheduleId });
+              job = await Job.create({
+                device: deviceId,
+                begin: new Date(),
+                type: 'pushSchedule',
+                status: null,
+                content: {
+                  schedule: scheduleId,
+                  contentType: 'schedule'
+                }
+              });
             }
             deviceSocket.emit(EVENT.APP_EVENT_RECEIVE_SCHEDULE, schedule, job);
           } catch (err) {

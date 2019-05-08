@@ -11,7 +11,8 @@
       "optionsType": "onlyValue",
       "options": [
         "pushFile",
-        "pushPlaylist"
+        "pushPlaylist",
+        "pushSchedule"
       ]
     },
     {
@@ -32,7 +33,8 @@
       "key": "device",
       "ref": "Device",
       "type": "ref-select",
-      "labelProp": "name"
+      "labelProp": "name",
+      "autopopulate": false
     },
     {
       "_id": "5c9dbe80ac13610ffe073427",
@@ -45,6 +47,33 @@
       "schemaType": "date",
       "key": "end",
       "type": "input@datetime-local"
+    },
+    {
+      "_id": "5cd29bcb6f9678138d74d688",
+      "schemaType": "mixed",
+      "key": "content",
+      "type": "choice",
+      "choiceKey": "contentType",
+      "fields": [
+        {
+          "schemaType": "object",
+          "key": "schedule",
+          "fields": [
+            {
+              "schemaType": "objectId",
+              "key": "schedule",
+              "ref": "Schedule",
+              "autopopulate": false,
+              "type": "ref-select",
+              "labelProp": "name",
+              "addable": false,
+              "editable": false,
+              "clipboardType": "cut"
+            }
+          ],
+          "type": "object"
+        }
+      ]
     }
   ],
   "id": "5c9dbdeaac13610ffe073423",

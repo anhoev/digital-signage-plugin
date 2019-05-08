@@ -37,8 +37,8 @@
                         </v-list-tile-content>
 
                         <v-list-tile-action
-                                v-if="job.status === 'fail'"
-                                @click="rePush(job.scheduleId, device._id, job._id)">
+                                v-if="job.status === 'fail' && job.content && job.content.contentType==='schedule'"
+                                @click="rePush(job.content.schedule, device._id, job._id)">
                             <v-btn flat>Re-push</v-btn>
                         </v-list-tile-action>
                     </v-list-tile>
@@ -103,7 +103,7 @@
         if (currentProgress < 0) {
           this.progress.push({ job, data });
         } else {
-          this.$set(this.progress, currentProgress, { job, data: data || this.progress[currentProgress].data, device: device || this.progress[currentProgress].data });
+          this.$set(this.progress, currentProgress, { job, data: data || this.progress[currentProgress].data, device: device || this.progress[currentProgress].device });
         }
       });
     },
@@ -125,7 +125,7 @@
       },
       async getFailedJob() {
         const Job = cms.getModel('Job');
-        const result = await Job.find({ $or: [{ status: 'fail', scheduleId: { $exists: true } }, { begin: { $gte: dayjs().subtract(10, 'minutes').toDate() } }] }).populate('device');
+        const result = await Job.find({ $or: [{ status: 'fail', content: { $exists: true } }, { begin: { $gte: dayjs().subtract(10, 'minutes').toDate() } }] }).populate('device');
         this.progress = result.map(item => {
           const { device, ...job } = item;
           return {

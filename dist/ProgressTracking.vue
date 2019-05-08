@@ -27,7 +27,7 @@
                             </v-list-tile-title>
                         </v-list-tile-content>
 
-                        <v-list-tile-action v-if="job.status === 'fail'" @click="rePush(job.scheduleId, device._id, job._id)">
+                        <v-list-tile-action v-if="job.status === 'fail' &amp;&amp; job.content &amp;&amp; job.content.contentType==='schedule'" @click="rePush(job.content.schedule, device._id, job._id)">
                             <v-btn flat="">Re-push</v-btn>
                         </v-list-tile-action>
                     </v-list-tile>
@@ -107,7 +107,7 @@ var _default = {
         this.$set(this.progress, currentProgress, {
           job,
           data: data || this.progress[currentProgress].data,
-          device: device || this.progress[currentProgress].data
+          device: device || this.progress[currentProgress].device
         });
       }
     });
@@ -139,7 +139,7 @@ var _default = {
       const result = await Job.find({
         $or: [{
           status: 'fail',
-          scheduleId: {
+          content: {
             $exists: true
           }
         }, {

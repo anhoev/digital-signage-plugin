@@ -23,6 +23,12 @@
                     </v-list-tile>
                     <v-list-tile class="px-2 py-1">
                         <v-list-tile-content>
+                            <v-list-tile-title>Schedule: {{job.content.schedule.name}}
+                            </v-list-tile-title>
+                        </v-list-tile-content>
+                    </v-list-tile>
+                    <v-list-tile class="px-2 py-1">
+                        <v-list-tile-content>
                             <v-list-tile-title :class="getClassByStatus(job.status)"> Status: {{job.status}}
                             </v-list-tile-title>
                         </v-list-tile-content>
@@ -160,10 +166,14 @@ var _default = {
       });
     },
 
-    rePush(scheduleId, device, jobId) {
+    rePush(schedule, device, jobId) {
+      if (!schedule || !device || !jobId) {
+        return alert('cannot re-push, job is missing some information');
+      }
+
       const data = {
         devices: [device],
-        schedule: scheduleId,
+        schedule: schedule._id,
         job: jobId
       };
       this.$options.socket.emit('WEB_LISTENER_PUSH_SCHEDULE', data, err => {

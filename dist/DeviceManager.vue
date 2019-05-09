@@ -24,7 +24,7 @@
 
             </v-list>
         </v-flex>
-        <v-flex style="border-left: 1px solid #ddd; flex: 1; min-width: 0">
+        <v-flex style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto">
             <v-layout row="" wrap="">
                 <v-flex shrink="" md12="" v-if="error">
                     <v-card-title>{{error}}</v-card-title>
@@ -57,9 +57,9 @@
                             </div>
                         </v-layout>
                     </v-tabs>
-                    <v-tabs-items v-model="active">
+                    <v-tabs-items v-model="active" style="width: 100%; max-height: calc(100vh - 100px); overflow: auto">
                         <v-tab-item>
-                            <v-card style="width: 100%">
+                            <v-card>
                                 <v-list>
                                     <template v-for="(item, index) in files">
                                         <v-list-tile :key="item" avatar="" class="py-2" style="width: 100%">
@@ -176,8 +176,14 @@
                                     Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
                                     (MB)
                                     <div style="width: 200px; height: 20px; border-radius: 10px; overflow: hidden; background: #ddd">
-                                        <div style="height: 20px; background: #03a9f4" :style="{width: (freeStorage.free/freeStorage.total*100) + '%'}"></div>
+                                        <div style="height: 20px; background: #03a9f4" :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
                                     </div>
+                                </div>
+                                <div class="pa-2" :class="selectedDevices.appVersionCode<currentVersion?'orange--text':'green--text'">
+                                    App version on device: {{selectedDevices.appVersionCode}}
+                                </div>
+                                <div class="pa-2" v-if="currentVersion">
+                                    Current version: {{currentVersion}}
                                 </div>
 
                                 <v-btn @click="deleteDeviceData">
@@ -246,7 +252,8 @@ var _default = {
     lastOnline: null,
     schedule: [],
     freeStorage: {},
-    showModalRegister: false
+    showModalRegister: false,
+    currentVersion: ''
   }),
   props: {
     source: String
@@ -447,6 +454,27 @@ var _default = {
           alert('set playlist success');
         }
       });
+    },
+
+    async getCurrentVersion() {
+      const SystemConfig = cms.getModel('SystemConfig');
+      const res = await SystemConfig.findOne();
+      const MY_APP_DESTRIBUTION_GROUP = res.DistributionGroup;
+      const MY_APP_SECRET_KEY = res.SecretKey;
+      const MY_API_TOKEN = res.ApiToken;
+
+      if (MY_APP_DESTRIBUTION_GROUP && MY_APP_SECRET_KEY && MY_API_TOKEN) {
+        try {
+          const app = await _axios.default.get(`https://api.appcenter.ms/v0.1/public/sdk/apps/${MY_APP_SECRET_KEY}/distribution_groups/${MY_APP_DESTRIBUTION_GROUP}/releases/latest`, {
+            headers: {
+              'X-API-Token': MY_API_TOKEN
+            }
+          });
+          this.currentVersion = app.data.version;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     }
 
   },
@@ -454,6 +482,7 @@ var _default = {
   mounted() {
     this.connectSocket();
     this.getDevices();
+    this.getCurrentVersion();
   },
 
   beforeDestroy() {

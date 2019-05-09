@@ -17,6 +17,7 @@ const EVENT = {
   APP_EVENT_RECEIVE_FILE: 'APP_EVENT_RECEIVE_FILE',
   APP_EVENT_RECEIVE_PLAYLIST: 'APP_EVENT_RECEIVE_PLAYLIST',
   APP_EVENT_RECEIVE_SCHEDULE: 'APP_EVENT_RECEIVE_SCHEDULE',
+  APP_EVENT_FAILED_JOB: 'APP_EVENT_FAILED_JOB',
   APP_LISTENER_FILE_PROGRESS: 'APP_LISTENER_FILE_PROGRESS',
   APP_LISTENER_PLAYLIST_PROGRESS: 'APP_LISTENER_PLAYLIST_PROGRESS',
   APP_LISTENER_DOWNLOAD_FILE: 'APP_LISTENER_DOWNLOAD_FILE',
@@ -93,6 +94,11 @@ function verifyTokenMiddleware(socket, next) {
 
 // progress = [{name: 'abc', progress: 0.4},{name: 'xyz', progress: 0.45}];
 
+function findLatestFailedJob(deviceId) {
+  return Job.findOne({ device: deviceId, content: { $exists: true }, status: 'fail' })
+    .sort('-begin')
+}
+
 function changeStatusDevice(socket, status) {
   const data = {
     device: socket.device._id,
@@ -142,6 +148,11 @@ module.exports = cms => {
     onlineDevices[socket.device._id] = socket;
     webNamespace.emit(EVENT.WEB_EVENT_LIST_ONLINE_DEVICE, Object.keys(onlineDevices));
     changeStatusDevice(socket, true);
+    findLatestFailedJob(socket.device._id).then(res => {
+      if (res) {
+        socket.emit(EVENT.APP_EVENT_RECEIVE_SCHEDULE, res.content.schedule, res);
+      }
+    });
 
     socket.on(EVENT.APP_LISTENER_FILE_PROGRESS, (jobId, data) => {
       const isValid = progressSchema.validate(data, { allowUnknown: true });

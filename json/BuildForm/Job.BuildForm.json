@@ -50,7 +50,7 @@
     },
     {
       "_id": "5cd29bcb6f9678138d74d688",
-      "schemaType": "mixed",
+      "schemaType": "object",
       "key": "content",
       "type": "choice",
       "choiceKey": "contentType",
@@ -63,7 +63,7 @@
               "schemaType": "objectId",
               "key": "schedule",
               "ref": "Schedule",
-              "autopopulate": false,
+              "autopopulate": true,
               "type": "ref-select",
               "labelProp": "name",
               "addable": false,

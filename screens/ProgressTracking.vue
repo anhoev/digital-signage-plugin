@@ -29,6 +29,7 @@
                         </v-list-tile-content>
                     </v-list-tile>
                     <v-list-tile
+                            v-if="job.content && job.content.schedule"
                             class="px-2 py-1"
                     >
                         <v-list-tile-content>

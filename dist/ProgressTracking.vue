@@ -21,7 +21,7 @@
                             </v-list-tile-title>
                         </v-list-tile-content>
                     </v-list-tile>
-                    <v-list-tile class="px-2 py-1">
+                    <v-list-tile v-if="job.content &amp;&amp; job.content.schedule" class="px-2 py-1">
                         <v-list-tile-content>
                             <v-list-tile-title>Schedule: {{job.content.schedule.name}}
                             </v-list-tile-title>

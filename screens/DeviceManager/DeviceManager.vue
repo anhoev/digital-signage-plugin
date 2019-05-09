@@ -227,7 +227,7 @@
                                     (MB)
                                     <div style="width: 200px; height: 20px; border-radius: 10px; overflow: hidden; background: #ddd">
                                         <div style="height: 20px; background: #03a9f4"
-                                             :style="{width: (freeStorage.free/freeStorage.total*100) + '%'}"></div>
+                                             :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
                                     </div>
                                 </div>
 

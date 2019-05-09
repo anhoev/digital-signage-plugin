@@ -147,7 +147,7 @@ var _default = {
             $gte: (0, _dayjs.default)().subtract(10, 'minutes').toDate()
           }
         }]
-      }).populate('device');
+      }).populate('device').populate('content.schedule');
       this.progress = result.map(item => {
         const {
           device,

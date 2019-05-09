@@ -53,7 +53,7 @@
         <v-dialog v-model="dialogPushToDevice" width="500">
             <push-to-device :model.sync="dialogPushToDevice" v-if="dialogPushToDevice" :online-devices="onlineDevices" :devices="devices" @push-notify="pushNotify">
         </push-to-device></v-dialog>
-        <v-dialog v-model="dialogUploadFile" width="300">
+        <v-dialog v-model="dialogUploadFile" width="300" persistent="">
             <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress" @close="dialogUploadFile = false"></upload-file>
         </v-dialog>
         <v-dialog v-model="dialogCreateFolder" width="300">

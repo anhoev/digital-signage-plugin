@@ -77,6 +77,7 @@
         <v-dialog
                 v-model="dialogUploadFile"
                 width="300"
+                persistent
         >
             <upload-file :key="dialogUploadFile" @upload="uploadFile" :progress="uploadProgress"
                          @close="dialogUploadFile = false"></upload-file>

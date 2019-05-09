@@ -104,6 +104,12 @@
         }
       ],
       "addable": true
+    },
+    {
+      "_id": "5cd3cad80e90e70a89663446",
+      "schemaType": "string",
+      "key": "appVersionCode",
+      "type": "input"
     }
   ],
   "id": "5c9466cd9355686e4f94d19c",

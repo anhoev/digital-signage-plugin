@@ -104,7 +104,7 @@ exports.newFolder = function (_path, name) {
 exports.deleteFile = function (_path) {
   const unlinkPath = path.join(config.imageStore, _path);
   const pathParts = generatePartsFolderName(_path);
-  fs.unlink(unlinkPath);
+  fsExtra.removeSync(unlinkPath);
   fsExtra.removeSync(pathParts);
   return Promise.all([
       Content.findOneAndRemove({ path: _path })

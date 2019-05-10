@@ -222,6 +222,10 @@ module.exports = cms => {
         const deviceSocket = onlineDevices[deviceId];
         if (deviceSocket) {
           try {
+            const isRunningJob = await Job.findOne({device: deviceId, status: 'running'});
+            if (isRunningJob) {
+              return `device ${deviceId} is running another job`;
+            }
             const schedule = await Schedule.findById(scheduleId);
             let job;
             if (jobId) {

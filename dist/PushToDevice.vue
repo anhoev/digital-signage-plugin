@@ -4,7 +4,7 @@
             Push to device
         </v-card-title>
         <v-list subheader="">
-            <v-list-tile v-for="(item, index) in listDevices" :key="item.path" class="pa-2" two-line="" avatar="">
+            <v-list-tile v-for="(item, index) in listDevices" v-if="isOnline(item)" :key="item.path" class="pa-2" two-line="" avatar="">
                 <v-list-tile-avatar>
                     <v-checkbox @change="changeDevice($event, item._id)">
                 </v-checkbox></v-list-tile-avatar>

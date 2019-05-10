@@ -9,6 +9,7 @@
         <v-list subheader>
             <v-list-tile
                     v-for="(item, index) in listDevices"
+                    v-if="isOnline(item)"
                     :key="item.path"
                     class="pa-2"
                     two-line

@@ -57,7 +57,10 @@
           devices: devices,
           schedule: this.model._id
         };
-        socket.emit('WEB_LISTENER_PUSH_SCHEDULE', data, () => {
+        socket.emit('WEB_LISTENER_PUSH_SCHEDULE', data, (err) => {
+          if (err) {
+            alert(err.join(', '));
+          }
           this.show = false;
           this.trackProgressModel = true;
         });

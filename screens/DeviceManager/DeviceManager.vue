@@ -68,6 +68,11 @@
                         >
                             Device Control
                         </v-tab>
+                        <v-tab
+                                ripple
+                        >
+                            Device Logs
+                        </v-tab>
                         <v-layout justify-end align-center style="color: #fff">
                             <div class="mx-2 pa-2">
                                 <v-btn flat @click="showModalRegister=true">Edit device info</v-btn>
@@ -233,6 +238,7 @@
                                 <div class="pa-2"
                                      :class="selectedDevices.appVersionCode<currentVersion?'orange--text':'green--text'">
                                     App version on device: {{selectedDevices.appVersionCode}}
+                                    <v-btn v-if="selectedDevices.appVersionCode<currentVersion" @click="updateApp" flat>Update</v-btn>
                                 </div>
                                 <div class="pa-2" v-if="currentVersion">
                                     Current version: {{currentVersion}}
@@ -244,6 +250,11 @@
                                 <map-maker v-if="selectedDevices.coordinates"
                                            :lat="selectedDevices.coordinates.latitude"
                                            :lng="selectedDevices.coordinates.longitude"></map-maker>
+                            </v-card>
+                        </v-tab-item>
+                        <v-tab-item>
+                            <v-card>
+                               <v-btn @click="getLog">Hello</v-btn>
                             </v-card>
                         </v-tab-item>
                     </v-tabs-items>
@@ -318,6 +329,26 @@
       }
     },
     methods: {
+      updateApp() {
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_UPDATE',
+          deviceId: this.selectedDevices._id
+        }).then(res => {
+          console.log(res)
+        }).catch(err => {
+          console.log(err);
+        });
+      },
+      getLog() {
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_GET_LOG',
+          deviceId: this.selectedDevices._id
+        }).then(res => {
+          console.log(res)
+        }).catch(err => {
+          console.log(err);
+        });
+      },
       deleteDeviceData() {
         axios.post(cms.baseUrl + 'digital/p2p', {
           event: 'APP_ACTION_DELETE_DEVICE_DATA',

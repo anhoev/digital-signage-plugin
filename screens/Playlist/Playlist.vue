@@ -72,7 +72,7 @@
                             </v-list>
                             <v-card-actions>
                                 <v-btn @click="onClickDelete" flat color="red"
-                                       :disabled="selectedPlaylist.content.length===0"
+
                                 >
                                     Delete
                                 </v-btn>

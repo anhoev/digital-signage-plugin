@@ -201,6 +201,7 @@
                         <v-tab-item>
                             <v-card>
                                 <v-btn @click="getLog">GetLog</v-btn>
+                                <a :href="downloadLink" download="log.txt">Download</a>
                                 <v-textarea v-model="log" ref="log"></v-textarea>
                                 <v-btn @click="copyLog">Copy</v-btn>
                             </v-card>
@@ -267,7 +268,8 @@ var _default = {
     freeStorage: {},
     showModalRegister: false,
     currentVersion: '',
-    log: ''
+    log: '',
+    downloadLink: ''
   }),
   props: {
     source: String
@@ -310,7 +312,12 @@ var _default = {
         deviceId: this.selectedDevices._id
       }).then(res => {
         console.log(res);
+        var data = new Blob([res.data.data], {
+          type: 'text/plain'
+        });
+        var url = window.URL.createObjectURL(data);
         this.log = res.data.data.replace(/↵/g, '\n');
+        this.downloadLink = url;
       }).catch(err => {
         console.log(err);
       });

@@ -238,7 +238,9 @@
                                 <div class="pa-2"
                                      :class="selectedDevices.appVersionCode<currentVersion?'orange--text':'green--text'">
                                     App version on device: {{selectedDevices.appVersionCode}}
-                                    <v-btn v-if="selectedDevices.appVersionCode<currentVersion" @click="updateApp" flat>Update</v-btn>
+                                    <v-btn v-if="selectedDevices.appVersionCode<currentVersion" @click="updateApp" flat>
+                                        Update
+                                    </v-btn>
                                 </div>
                                 <div class="pa-2" v-if="currentVersion">
                                     Current version: {{currentVersion}}
@@ -254,7 +256,9 @@
                         </v-tab-item>
                         <v-tab-item>
                             <v-card>
-                               <v-btn @click="getLog">Hello</v-btn>
+                                <v-btn @click="getLog">GetLog</v-btn>
+                                <v-textarea v-model="log" ref="log"></v-textarea>
+                                <v-btn @click="copyLog">Copy</v-btn>
                             </v-card>
                         </v-tab-item>
                     </v-tabs-items>
@@ -311,7 +315,8 @@
       schedule: [],
       freeStorage: {},
       showModalRegister: false,
-      currentVersion: ''
+      currentVersion: '',
+      log: ''
     }),
     props: {
       source: String
@@ -329,12 +334,17 @@
       }
     },
     methods: {
+      copyLog() {
+        console.log(this.$refs.log);
+        this.$refs.log.$refs.input.select();
+        document.execCommand('copy');
+      },
       updateApp() {
         axios.post(cms.baseUrl + 'digital/p2p', {
           event: 'APP_LISTENER_UPDATE',
           deviceId: this.selectedDevices._id
         }).then(res => {
-          console.log(res)
+          console.log(res);
         }).catch(err => {
           console.log(err);
         });
@@ -344,7 +354,8 @@
           event: 'APP_LISTENER_GET_LOG',
           deviceId: this.selectedDevices._id
         }).then(res => {
-          console.log(res)
+          console.log(res);
+          this.log = res.data.data.replace(/↵/g, '\n');
         }).catch(err => {
           console.log(err);
         });

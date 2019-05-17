@@ -24,7 +24,7 @@
 
             </v-list>
         </v-flex>
-        <v-flex style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto">
+        <v-flex v-if="selectedDevices" style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto" :key="selectedDevices._id">
             <v-layout row="" wrap="">
                 <v-flex shrink="" md12="" v-if="error">
                     <v-card-title>{{error}}</v-card-title>
@@ -182,9 +182,9 @@
                                         <div style="height: 20px; background: #03a9f4" :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
                                     </div>
                                 </div>
-                                <div class="pa-2" :class="selectedDevices.appVersionCode<currentVersion?'orange--text':'green--text'">
+                                <div class="pa-2" :class="needUpdate?'orange--text':'green--text'">
                                     App version on device: {{selectedDevices.appVersionCode}}
-                                    <v-btn v-if="selectedDevices.appVersionCode<currentVersion" @click="updateApp" flat="">
+                                    <v-btn v-if="needUpdate" @click="updateApp" flat="">
                                         Update
                                     </v-btn>
                                 </div>
@@ -201,6 +201,7 @@
                         <v-tab-item>
                             <v-card>
                                 <v-btn @click="getLog">GetLog</v-btn>
+                                <v-btn @click="clearLog">ClearLog</v-btn>                                
                                 <a :href="downloadLink" download="log.txt">Download</a>
                                 <v-textarea v-model="log" ref="log"></v-textarea>
                                 <v-btn @click="copyLog">Copy</v-btn>
@@ -285,6 +286,10 @@ var _default = {
     gfield() {
       const filterList = ['token', 'resolution', 'deviceCode', 'isRegistered'];
       return cms.Types.Device.form.filter(i => !filterList.includes(i.key));
+    },
+
+    needUpdate() {
+      return Number(this.selectedDevices.appVersionCode) < Number(this.currentVersion);
     }
 
   },
@@ -293,6 +298,18 @@ var _default = {
       console.log(this.$refs.log);
       this.$refs.log.$refs.input.select();
       document.execCommand('copy');
+    },
+
+    clearLog() {
+      _axios.default.post(cms.baseUrl + 'digital/p2p', {
+        event: 'APP_LISTENER_CLEAR_LOG',
+        deviceId: this.selectedDevices._id
+      }).then(res => {
+        this.log = '';
+        this.downloadLink = '';
+      }).catch(err => {
+        console.log(err);
+      });
     },
 
     updateApp() {

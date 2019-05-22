@@ -317,8 +317,8 @@ var _default = {
         event: 'APP_LISTENER_UPDATE',
         deviceId: this.selectedDevices._id
       }).then(res => {
-        if (res.data) {
-          alert(res.data);
+        if (res.data && res.data.data) {
+          alert(res.data.data);
         } else {
           alert('check for update success, device is downloading new version');
         }

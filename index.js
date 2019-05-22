@@ -11,7 +11,7 @@ const path = require('path');
 module.exports = cms => {
   cms.app.use('/digital/video', videoApi);
   cms.app.use('/digital/file', fileApi);
-  cms.app.use('/digital/apkManager', apkApi);
+  cms.app.use('/digital/apk-manager', apkApi);
   cms.app.use('/digital/config', configApi);
   cms.app.use('/digital/devices', deviceApi);
   cms.app.use('/digital/playlist', playListApi);

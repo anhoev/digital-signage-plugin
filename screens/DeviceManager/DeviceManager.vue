@@ -32,7 +32,9 @@
 
             </v-list>
         </v-flex>
-        <v-flex v-if="selectedDevices" style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto" :key="selectedDevices._id">
+        <v-flex v-if="selectedDevices"
+                style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto"
+                :key="selectedDevices._id">
             <v-layout row wrap>
                 <v-flex shrink md12 v-if="error">
                     <v-card-title>{{error}}</v-card-title>
@@ -257,7 +259,7 @@
                         <v-tab-item>
                             <v-card>
                                 <v-btn @click="getLog">GetLog</v-btn>
-                                <v-btn @click="clearLog">ClearLog</v-btn>                                
+                                <v-btn @click="clearLog">ClearLog</v-btn>
                                 <a :href="downloadLink" download="log.txt">Download</a>
                                 <v-textarea v-model="log" ref="log"></v-textarea>
                                 <v-btn @click="copyLog">Copy</v-btn>
@@ -336,7 +338,7 @@
         return cms.Types.Device.form.filter(i => !filterList.includes(i.key));
       },
       needUpdate() {
-        return Number(this.selectedDevices.appVersionCode)<Number(this.currentVersion)
+        return Number(this.selectedDevices.appVersionCode) < Number(this.currentVersion);
       }
     },
     methods: {
@@ -361,7 +363,11 @@
           event: 'APP_LISTENER_UPDATE',
           deviceId: this.selectedDevices._id
         }).then(res => {
-          console.log(res);
+          if (res.data) {
+            alert(res.data);
+          } else {
+            alert('check for update success, device is downloading new version');
+          }
         }).catch(err => {
           console.log(err);
         });
@@ -372,7 +378,7 @@
           deviceId: this.selectedDevices._id
         }).then(res => {
           console.log(res);
-          var data = new Blob([res.data.data], {type: 'text/plain'});
+          var data = new Blob([res.data.data], { type: 'text/plain' });
           var url = window.URL.createObjectURL(data);
           this.log = res.data.data.replace(/↵/g, '\n');
           this.downloadLink = url;

@@ -201,7 +201,7 @@
                         <v-tab-item>
                             <v-card>
                                 <v-btn @click="getLog">GetLog</v-btn>
-                                <v-btn @click="clearLog">ClearLog</v-btn>                                
+                                <v-btn @click="clearLog">ClearLog</v-btn>
                                 <a :href="downloadLink" download="log.txt">Download</a>
                                 <v-textarea v-model="log" ref="log"></v-textarea>
                                 <v-btn @click="copyLog">Copy</v-btn>
@@ -317,7 +317,11 @@ var _default = {
         event: 'APP_LISTENER_UPDATE',
         deviceId: this.selectedDevices._id
       }).then(res => {
-        console.log(res);
+        if (res.data) {
+          alert(res.data);
+        } else {
+          alert('check for update success, device is downloading new version');
+        }
       }).catch(err => {
         console.log(err);
       });

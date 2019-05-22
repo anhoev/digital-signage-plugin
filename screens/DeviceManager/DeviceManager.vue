@@ -326,6 +326,15 @@
     props: {
       source: String
     },
+    watch: {
+      onlineDevices(newValue, oldValue) {
+        newValue.forEach((item) => {
+          if (oldValue.indexOf(item) === -1 && item === this.selectedDevices._id) {
+            this.selectItem(this.selectedDevices);
+          }
+        });
+      }
+    },
     computed: {
       sortedDevices() {
         return [...this.devices].sort((a, b) => {

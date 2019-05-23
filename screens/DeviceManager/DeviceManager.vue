@@ -326,6 +326,15 @@
     props: {
       source: String
     },
+    watch: {
+      onlineDevices(newValue, oldValue) {
+        newValue.forEach((item) => {
+          if (this.selectedDevices && oldValue.indexOf(item) === -1 && item === this.selectedDevices._id) {
+            this.selectItem(this.selectedDevices);
+          }
+        });
+      }
+    },
     computed: {
       sortedDevices() {
         return [...this.devices].sort((a, b) => {
@@ -410,10 +419,7 @@
         };
         cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data)
           .then(res => {
-            this.getDevices()
-              .then(() => {
-                this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
-              });
+            this.getDevices();
             this.showModalRegister = false;
             axios.post(cms.baseUrl + 'digital/p2p', {
               event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
@@ -432,7 +438,7 @@
         if (!this.selectedDevices) {
           return false;
         }
-        return this.selectedDevices === item;
+        return this.selectedDevices._id === item._id;
       },
       isFileNotInAnyPlaylist(name) {
         return !this.playlist.some(playlist => {
@@ -463,17 +469,23 @@
       async getDevices() {
         const Model = cms.getModel('Device');
         this.devices = await Model.find({});
+        if (this.selectedDevices) {
+          this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
+        }
       },
-      selectItem(item) {
-        this.selectedDevices = item;
-        // if (!item.isRegistered) {
-        //   this.showModalRegister = true;
-        // }
+      async selectItem(item) {
         this.files = [];
         this.connecting = true;
         this.error = null;
-        this.$options.socket.emit('WEB_LISTENER_VIEW_DEVICE', item._id);
-        this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', item._id, (err, files) => {
+        const Model = cms.getModel('Device');
+        const res = await Model.findById(item._id);
+        this.selectedDevices = res;
+
+        // if (!item.isRegistered) {
+        //   this.showModalRegister = true;
+        // }
+        this.$options.socket.emit('WEB_LISTENER_VIEW_DEVICE', res._id);
+        this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', res._id, (err, files) => {
           if (err) {
             this.error = err;
             cms.getModel('ConnectionHistory').findOne({ device: this.selectedDevices._id }).sort('-date').then(res => {
@@ -604,3 +616,4 @@
         color: #c14444
     }
 </style>
+

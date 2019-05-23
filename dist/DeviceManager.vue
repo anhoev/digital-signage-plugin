@@ -275,16 +275,6 @@ var _default = {
   props: {
     source: String
   },
-  watch: {
-    onlineDevices(newValue, oldValue) {
-      newValue.forEach(item => {
-        if (oldValue.indexOf(item) === -1 && item === this.selectedDevices._id) {
-          this.getDevices();
-        }
-      });
-    }
-
-  },
   computed: {
     sortedDevices() {
       return [...this.devices].sort((a, b) => {
@@ -379,7 +369,9 @@ var _default = {
         isRegistered: true
       };
       cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data).then(res => {
-        this.getDevices();
+        this.getDevices().then(() => {
+          this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
+        });
         this.showModalRegister = false;
 
         _axios.default.post(cms.baseUrl + 'digital/p2p', {
@@ -437,10 +429,6 @@ var _default = {
     async getDevices() {
       const Model = cms.getModel('Device');
       this.devices = await Model.find({});
-
-      if (this.selectedDevices) {
-        this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
-      }
     },
 
     selectItem(item) {

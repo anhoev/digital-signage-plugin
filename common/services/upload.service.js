@@ -11,6 +11,7 @@ const mkdirp = require('mkdirp');
 
 const utilService = require('./util.service');
 const config = require('../../config/environment');
+const { removeUnicode } = require('./file.service');
 
 const splitExtNameFile = function (pathFile) {
   return path.basename(pathFile, path.extname(pathFile));
@@ -42,10 +43,10 @@ let disStorageMultiple = multer.diskStorage({
     return cb(null, pathUpload);
   },
   filename: function (req, file, cb) {
-    const name = config.prefixFile + file.originalname;
+    const name = removeUnicode(config.prefixFile + file.originalname);
     req.namebase = name;
-    if (req.query.replace && fs.existsSync(path.join(req.destination, req.namebase))) {
-      fs.unlink(path.join(req.destination, req.namebase));
+    if (req.query.replace && fs.existsSync(path.join(req.destination, name))) {
+      fs.unlink(path.join(req.destination, name));
     }
     return cb(null, name);
   }

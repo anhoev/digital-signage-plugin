@@ -1,0 +1,21 @@
+{
+  "props": [],
+  "events": [],
+  "_id": "5cdbe2fa68895418830ec81f",
+  "__v": 0,
+  "items": [
+    {
+      "choice": "view",
+      "component": "ScheduleCalendar",
+      "binding": [],
+      "slotScopeBinding": [],
+      "url": "plugins/digital-signage-plugin/screens/ScheduleCalendar.vue",
+      "path": "screens/ScheduleCalendar.vue",
+      "pluginName": "digital-signage-plugin"
+    }
+  ],
+  "renderInAdminPage": true,
+  "isProduction": true,
+  "renderToRoute": "Schedule Calendar",
+  "id": "5cdbe2fa68895418830ec81f"
+}

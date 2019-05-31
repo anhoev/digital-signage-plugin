@@ -11,6 +11,15 @@
                     <v-btn flat="" @click="showDialogSelectPlaylist = false">Cancel</v-btn>
                 </div>
             </v-dialog>
+            <v-dialog v-model="showPushToDevice" width="600">
+                <push-to-device v-if="showPushToDevice" :isolate="true" @push-notify="pushSchedule" :model.sync="showPushToDevice"></push-to-device>
+            </v-dialog>
+
+            <v-dialog v-model="trackProgressModel" width="1200">
+                <div style="height: 90vh; background: #fff; overflow: auto">
+                    <progress-tracking v-if="trackProgressModel">
+                </progress-tracking></div>
+            </v-dialog>
         </div>
         <v-flex shrink="" style="border-right: 1px solid #ddd; width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
             <v-list dense="" two-line="" avatar="">
@@ -27,7 +36,7 @@
                     </v-list-tile>
                     <v-divider style="opacity: 0.5; margin: 0 20px"></v-divider>
                 </template>
-                <v-list-tile @click="newSchedule">
+                <v-list-tile :class="{'selected-playlist':isSelected({type: 'new'})}" @click="newSchedule">
                     <v-list-tile-content>
                         <v-list-tile-title> +</v-list-tile-title>
                         <!--                            <v-list-tile-sub-title>{{item.resolution}} <span v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>-->
@@ -42,10 +51,11 @@
         <v-flex v-if="selectedSchedule" style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto">
             <g-field :fields="scheduleField" :model="scheduleModel"></g-field>
             <div style="flex: 1">
-                <full-calendar :config="config" :events="events" ref="calendar" @event-created="onCreate" @event-resize="onResized" @event-drop="onDrop" @event-selected="onSelected">
+                <full-calendar :config="config" :events="events" ref="calendar" @event-created="onCreate" @event-resize="onDrop" @event-drop="onDrop" @event-selected="onSelected">
             </full-calendar></div>
 
             <v-btn @click="saveSchedule" flat="">Save</v-btn>
+            <v-btn style="margin: 10px 0 10px -7px" @click="showPushToDevice=true" flat="" color="orange">Push</v-btn>
         </v-flex>
     </v-layout>
     <!--    <div>-->
@@ -69,6 +79,8 @@ exports.default = void 0;
 var _moment = _interopRequireDefault(require("moment"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const listColor = ['#d50000', '#9b0000', '#aa00ff', '#7200ca', '#6200ea', '#0a00b6', '#304ffe', '#2962ff', '#0064b7', '#0091ea', '#00b8d4', '#00bfa5', '#00c853', '#64dd17', '#aeea00', '#ffd600', '#ffab00', '#ff6d00', '#c43c00', '#dd2c00', '#a30000', '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#4fc3f7', '#3f51b5', '#757de8', '#e91e63', '#e53935']; // const listColor = ['#d50000', '#9b0000'];
 
 var _default = {
   name: 'ScheduleCalendar',
@@ -119,16 +131,22 @@ var _default = {
         defaultView: 'agendaWeek',
         allDaySlot: false,
         slotLabelFormat: ['MMMM YYYY', // top level of text
-        'hh: mm' // lower level of text
+        'HH: mm' // lower level of text
         ],
-        nowIndicator: true,
         columnHeader: true,
         columnFormat: 'ddd',
         timezone: 'local',
         selectable: true,
-        unselectAuto: false
+        slotLabelInterval: '02:00',
+        slotDuration: '01:00:00',
+        unselectAuto: false,
+        firstDay: 1,
+        contentHeight: 551,
+        nowIndicator: false
       },
       showDialogSelectPlaylist: false,
+      showPushToDevice: false,
+      trackProgressModel: false,
       playlist: [],
       selectedPlaylist: null,
       selectedSchedule: undefined,
@@ -206,7 +224,36 @@ var _default = {
   },
 
   methods: {
+    pushSchedule(devices, socket) {
+      // const device = devices[0];
+      // axios.post('/digital/push-data', {
+      //   event: 'APP_EVENT_RECEIVE_SCHEDULE',
+      //   data: this.model,
+      //   deviceId: device
+      // }).then(res => {
+      //   console.log(res);
+      // }).catch(err => {
+      //   console.log(err);
+      // });
+      const data = {
+        devices: devices,
+        schedule: this.model._id
+      };
+      socket.emit('WEB_LISTENER_PUSH_SCHEDULE', data, err => {
+        if (err) {
+          alert(err.join(', '));
+        }
+
+        this.show = false;
+        this.trackProgressModel = true;
+      });
+    },
+
     isSelected(item) {
+      if (item.type === 'new') {
+        return this.selectedSchedule && 'new' === this.selectedSchedule.type;
+      }
+
       return this.selectedSchedule && item._id === this.selectedSchedule._id;
     },
 
@@ -214,16 +261,6 @@ var _default = {
       cms.getModel('Playlist').find({}).then(res => {
         this.playlist = res;
       });
-    },
-
-    onResized(event) {
-      const currentEvents = this.events.findIndex(item => item.key === event.key);
-
-      if (currentEvents > -1) {
-        const newEvent = _.pick(event, ['end', 'start', 'title', 'index', 'key']);
-
-        this.$set(this.events, currentEvents, newEvent);
-      }
     },
 
     // add() {
@@ -252,8 +289,7 @@ var _default = {
       const current = this.events.findIndex(i => i.key === this.currentEvent.key);
 
       if (current > -1) {
-        this.events.splice(current, 1);
-        this.events.push(...this.convertScheduleToEvent(this.dialogModel.weekdaySchedule)); // this.events.push({ start: event.start, end: event.end, title: this.selectedPlaylist, playlist: this.selectedPlaylist, key: this.genKey() });
+        this.events.splice(current, 1, ...this.convertScheduleToEvent(this.dialogModel.weekdaySchedule)); // this.events.push({ start: event.start, end: event.end, title: this.selectedPlaylist, playlist: this.selectedPlaylist, key: this.genKey() });
 
         this.showDialogSelectPlaylist = false;
       } // }
@@ -272,7 +308,7 @@ var _default = {
       const currentEvents = this.events.findIndex(item => item.key === event.key);
 
       if (currentEvents > -1) {
-        const newEvent = _.pick(event, ['end', 'start', 'title', 'index', 'key']);
+        const newEvent = _.pick(event, ['end', 'start', 'title', 'index', 'key', 'backgroundColor']);
 
         this.$set(this.events, currentEvents, newEvent);
       }
@@ -303,7 +339,9 @@ var _default = {
 
     async newSchedule() {
       const a = await cms.getModel('Schedule').new();
-      this.selectedSchedule = a;
+      this.selectedSchedule = { ...a,
+        type: 'new'
+      };
       this.scheduleModel = {
         name: ''
       };
@@ -319,7 +357,7 @@ var _default = {
         new: true
       });
       this.getSchedule();
-      alert('save success full');
+      alert('save successful');
     },
 
     getPlaylistTitle(id) {
@@ -332,15 +370,49 @@ var _default = {
       return id;
     },
 
+    stringToColour(str) {
+      if (!str) {
+        return '#03a9f4';
+      }
+
+      let hash = 0;
+
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      let value = hash >> listColor.length / 3 & listColor.length - 1;
+      return listColor[value];
+    },
+
+    getContrastYIQ(hexcolor) {
+      if (hexcolor[0] === '#') {
+        hexcolor = hexcolor.slice(1);
+      }
+
+      const r = parseInt(hexcolor.substr(0, 2), 16);
+      const g = parseInt(hexcolor.substr(2, 2), 16);
+      const b = parseInt(hexcolor.substr(4, 2), 16);
+      const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+      return yiq >= 128 ? 'black' : 'white';
+    },
+
     convertScheduleToEvent(schedule) {
       let events = [];
 
       for (let i = 0; i < schedule.length; i++) {
         schedule[i].weekdays.forEach(item => {
+          const id = schedule[i].playlist && (schedule[i].playlist._id || schedule[i].playlist);
+          const title = this.getPlaylistTitle(id);
+          const bgColor = schedule[i].playlist ? this.stringToColour(title) : '#fff';
           events.push({
-            playlist: schedule[i].playlist && (schedule[i].playlist._id || schedule[i].playlist),
-            title: this.getPlaylistTitle(schedule[i].playlist && (schedule[i].playlist._id || schedule[i].playlist)),
+            playlist: id,
+            title: schedule[i].playlist ? title : 'Please select playlist',
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: schedule[i].playlist ? this.getContrastYIQ(bgColor) : '#d50000',
             index: events.length,
+            overlap: false,
             key: this.genKey(),
             start: (0, _moment.default)(`${item}-${schedule[i].from}`, 'ddd-HH:mm'),
             end: schedule[i].in === 'next day' ? (0, _moment.default)(`${item}-${schedule[i].to}`, 'ddd-HH:mm').add(1, 'days') : (0, _moment.default)(`${item}-${schedule[i].to}`, 'ddd-HH:mm')
@@ -357,9 +429,7 @@ var _default = {
           current = [current];
         }
 
-        console.log('currrent', current);
         const e = current[current.length - 1];
-        console.log(e.toDate(), end.toDate(), (0, _moment.default)(e).add(1, 'day'), end.diff(e, 'day', true));
 
         if (!(0, _moment.default)(e).add(1, 'day').isSameOrAfter((0, _moment.default)(end), 'day')) {
           current.push((0, _moment.default)(e).add(1, 'day'));
@@ -374,21 +444,20 @@ var _default = {
 
     convertEventsToSchedule(events) {
       const schedule = [];
-      console.log(events);
       events.forEach(event => {
         const dates = this.getDaysBetweenDates(event.start, event.end);
         console.log('dates;', dates.map(i => i.toDate()));
 
-        if (dates.length === 2) {
+        if (dates.length === 2 && dates[1].isSame(dates[0], 'day')) {
           schedule.push({
             playlist: event.playlist,
             from: dates[0].format('HH:mm'),
             to: dates[1].format('HH:mm'),
             weekdays: [dates[0].format('dddd')],
-            in: dates[1].isSame(dates[0], 'day') ? 'same day' : 'next day'
+            in: 'same day'
           });
         } else {
-          this.getDaysBetweenDates(event.start, event.end).forEach((date, index, dates) => {
+          dates.forEach((date, index, dates) => {
             if (index === 0) {
               schedule.push({
                 playlist: event.playlist,
@@ -398,13 +467,15 @@ var _default = {
                 in: 'next day'
               });
             } else if (index === dates.length - 1) {
-              schedule.push({
-                playlist: event.playlist,
-                from: '00:00',
-                to: date.format('HH:mm'),
-                weekdays: [date.format('dddd')],
-                in: date.format('HH:mm') === '00:00' ? 'next day' : 'same day'
-              });
+              if (!(date.format('HH:mm') === '00:00')) {
+                schedule.push({
+                  playlist: event.playlist,
+                  from: '00:00',
+                  to: date.format('HH:mm'),
+                  weekdays: [date.format('dddd')],
+                  in: dates[index - 1].isSame(date, 'day') ? 'next day' : 'same day'
+                });
+              }
             } else {
               schedule.push({
                 playlist: event.playlist,
@@ -428,7 +499,6 @@ var _default = {
         // console.log(this.getDaysBetweenDates(i.start, i.end).map(i => moment.weekdays(i.weekday())));
 
       });
-      console.log(schedule);
       return schedule;
     },
 
@@ -455,4 +525,7 @@ exports.default = _default;
     transition: none !important; }
   .selected-playlist .v-list__tile__sub-title {
     color: #fff !important; }
+
+.fc-today {
+  background-color: transparent !important; }
 </style>

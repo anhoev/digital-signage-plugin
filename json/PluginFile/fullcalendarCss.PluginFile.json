@@ -1,0 +1,14 @@
+{
+  "_id": "5cf0d695b6c1ef78a0e5f2db",
+  "__v": 0,
+  "loader": {
+    "type": "css-loader"
+  },
+  "path": "fullcalendar/fullcalendar.min.css",
+  "plugin": "digital-signage-plugin",
+  "props": {
+    "_code_": "",
+    "_code_type_": "commonJs"
+  },
+  "id": "5cf0d695b6c1ef78a0e5f2db"
+}

@@ -448,11 +448,10 @@ var _default = {
         data
       }) => {
         if (status === 'finished') {
-          var blob = new Blob([this.log], {
+          const blob = new Blob([this.log], {
             type: 'text/plain'
           });
-          var url = window.URL.createObjectURL(blob);
-          this.downloadLink = url;
+          this.downloadLink = window.URL.createObjectURL(blob);
         } else {
           this.log += data;
         }

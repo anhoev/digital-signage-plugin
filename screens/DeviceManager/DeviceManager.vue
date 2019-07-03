@@ -1,4 +1,3 @@
-<!--suppress ALL -->
 <template>
   <v-layout row style="height: 100%">
     <v-flex shrink
@@ -21,8 +20,7 @@
             <v-list-tile-content>
               <v-list-tile-title v-if="item.isRegistered">{{item.name}}</v-list-tile-title>
               <v-list-tile-title v-else>Unregistered Device</v-list-tile-title>
-              <v-list-tile-sub-title>{{item.resolution}} <span
-                  v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
+              <v-list-tile-sub-title>{{item.resolution}} <span v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
               </v-list-tile-sub-title>
             </v-list-tile-content>
             <v-list-tile-action>

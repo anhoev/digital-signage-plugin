@@ -284,7 +284,7 @@
                             hide-details></v-select>
                   <v-textarea v-model="log" autogrow ref="log"
                               style="font-family: monospace"></v-textarea>
-                  <v-btn @click="getLog" v-show="selectedLog" color="primary">Get Log</v-btn>
+                  <v-btn @click="sendGetLogEvent" v-show="selectedLog" color="primary">Get Log</v-btn>
                   <v-btn @click="copyLog">Copy</v-btn>
                   <v-btn v-if="downloadLink" :href="downloadLink" download="log.txt">Download</v-btn>
                 </v-flex>
@@ -391,51 +391,48 @@
         this.$refs.log.$refs.input.select();
         document.execCommand('copy');
       },
-      clearLog() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_CLEAR_LOG',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
+      async clearLog() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_CLEAR_LOG',
+            deviceId: this.selectedDevices._id
+          });
           this.log = '';
           this.downloadLink = '';
-        }).catch(err => {
-          console.log(err);
-        });
+        } catch (e) {
+          console.error(e);
+        }
       },
-      updateApp() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_UPDATE',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
-          if (res.data && res.data.data) {
-            alert(res.data.data);
+      async updateApp() {
+        try {
+          const {data} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_UPDATE',
+            deviceId: this.selectedDevices._id
+          });
+          if (data && data.data) {
+            alert(data.data);
           } else {
             alert('check for update success, device is downloading new version');
           }
-        }).catch(err => {
-          console.log(err);
-        });
+        } catch (e) {
+          console.error(e);
+        }
       },
-      getLogList() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
+      async getLogList() {
+        const {data: {data: logList}} = await axios.post(cms.baseUrl + 'digital/p2p', {
           event: 'APP_LISTENER_GET_LOG_LIST',
           deviceId: this.selectedDevices._id
-        }).then(res => {
-          console.log(res);
-          this.logs = res.data.data;
         });
+        this.logs = logList;
       },
-      getLog() {
+      async sendGetLogEvent() {
         this.log = '';
-        axios.post(cms.baseUrl + 'digital/p2p', {
+        const getLogResult = await axios.post(cms.baseUrl + 'digital/p2p', {
           event: 'APP_LISTENER_GET_LOG',
           deviceId: this.selectedDevices._id,
           data: this.selectedLog
-        }).then(value => {
-          console.log(value)
-        }).catch(err => {
-          console.log(err)
-        })
+        });
+        console.log(getLogResult)
       },
       async getStartLog() {
         this.startLog = '';
@@ -444,20 +441,21 @@
           deviceId: this.selectedDevices._id,
         })
       },
-      deleteDeviceData() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_DELETE_DEVICE_DATA',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
+      async deleteDeviceData() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_DELETE_DEVICE_DATA',
+            deviceId: this.selectedDevices._id
+          });
           this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
-        }).catch(err => {
-          console.log(err);
-        });
+        } catch (e) {
+          console.error(e);
+        }
       },
       toMegabytes(n) {
         return Math.floor(n / 1048576);
       },
-      onSaveDevice() {
+      async onSaveDevice() {
         const data = {
           name: this.selectedDevices.name,
           os: this.selectedDevices.os,
@@ -466,19 +464,17 @@
           location: this.selectedDevices.location,
           isRegistered: true
         };
-        cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data)
-            .then(res => {
-              this.getDevices();
-              this.showModalRegister = false;
-              axios.post(cms.baseUrl + 'digital/p2p', {
-                event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
-                deviceId: this.selectedDevices._id
-              }).then(res => {
-                console.log(res);
-              }).catch(err => {
-                console.log(err);
-              });
-            });
+        try {
+          await cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data);
+          this.getDevices();
+          this.showModalRegister = false;
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
+            deviceId: this.selectedDevices._id
+          });
+        } catch (e) {
+          console.error(e)
+        }
       },
       isOnline(device) {
         return this.onlineDevices.indexOf(device._id) > -1;
@@ -517,8 +513,7 @@
         this.$options.socket.on('WEB_EVENT_LOG_SEND', ({status, data}) => {
           if (status === 'finished') {
             const blob = new Blob([this.log], {type: 'text/plain'});
-            const url = window.URL.createObjectURL(blob);
-            this.downloadLink = url;
+            this.downloadLink = window.URL.createObjectURL(blob);
           } else {
             this.log += data;
           }
@@ -548,12 +543,10 @@
         //   this.showModalRegister = true;
         // }
         this.$options.socket.emit('WEB_LISTENER_VIEW_DEVICE', res._id);
-        this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', res._id, (err, files) => {
+        this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', res._id, async (err, files) => {
           if (err) {
             this.error = err;
-            cms.getModel('ConnectionHistory').findOne({device: this.selectedDevices._id}).sort('-date').then(res => {
-              this.lastOnline = res;
-            });
+            this.lastOnline = await cms.getModel('ConnectionHistory').findOne({device: this.selectedDevices._id}).sort('-date')
           } else {
             this.files = files;
           }
@@ -565,24 +558,20 @@
             this.playlist = playlist;
           }
         });
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_PUSH_SCHEDULE',
-          deviceId: item._id
-        }).then(res => {
-          console.log(res);
-          this.schedule = res.data.data;
-        }).catch(err => {
-          console.log(err);
-        });
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_PUSH_DEVICE_STORAGE',
-          deviceId: item._id
-        }).then(res => {
-          console.log(res);
-          this.freeStorage = res.data.data;
-        }).catch(err => {
-          console.log(err);
-        });
+        try {
+          const {data: {data: schedule}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_PUSH_SCHEDULE',
+            deviceId: item._id
+          });
+          this.schedule = schedule;
+          const {data: {data: freeStorage}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_PUSH_DEVICE_STORAGE',
+            deviceId: item._id
+          });
+          this.freeStorage = freeStorage;
+        } catch (e) {
+          console.error(e);
+        }
       },
       deleteFile(item) {
         this.$options.socket.emit('WEB_LISTENER_DELETE_FILE', this.selectedDevices._id, item, (err, files) => {
@@ -604,16 +593,17 @@
           }
         });
       },
-      deleteSchedule(item) {
-        axios.post(`${cms.baseUrl}digital/p2p`, {
-          event: 'APP_ACTION_DELETE_SCHEDULE',
-          deviceId: this.selectedDevices._id,
-          data: item._id
-        }).then(res => {
-          this.schedule = res.data.data;
-        }).catch(err => {
-          console.log(err);
-        });
+      async deleteSchedule(item) {
+        try {
+          const {data: {data: schedule}} = await axios.post(`${cms.baseUrl}digital/p2p`, {
+            event: 'APP_ACTION_DELETE_SCHEDULE',
+            deviceId: this.selectedDevices._id,
+            data: item._id
+          });
+          this.schedule = schedule;
+        } catch (e) {
+          console.error(e);
+        }
       },
       activePlaylist(item) {
         this.$options.socket.emit('WEB_LISTENER_SET_ACTIVE_PLAYLIST', this.selectedDevices._id, item.id, (err, playlist) => {
@@ -627,12 +617,12 @@
       async getCurrentVersion() {
         const SystemConfig = cms.getModel('SystemConfig');
         const res = await SystemConfig.findOne();
-        const MY_APP_DESTRIBUTION_GROUP = res.DistributionGroup;
+        const MY_APP_DISTRIBUTION_GROUP = res.DistributionGroup;
         const MY_APP_SECRET_KEY = res.SecretKey;
         const MY_API_TOKEN = res.ApiToken;
-        if (MY_APP_DESTRIBUTION_GROUP && MY_APP_SECRET_KEY && MY_API_TOKEN) {
+        if (MY_APP_DISTRIBUTION_GROUP && MY_APP_SECRET_KEY && MY_API_TOKEN) {
           try {
-            const app = await axios.get(`https://api.appcenter.ms/v0.1/public/sdk/apps/${MY_APP_SECRET_KEY}/distribution_groups/${MY_APP_DESTRIBUTION_GROUP}/releases/latest`,
+            const app = await axios.get(`https://api.appcenter.ms/v0.1/public/sdk/apps/${MY_APP_SECRET_KEY}/distribution_groups/${MY_APP_DISTRIBUTION_GROUP}/releases/latest`,
                 {
                   headers: {
                     'X-API-Token': MY_API_TOKEN
@@ -642,39 +632,45 @@
           } catch (e) {
             console.log(e);
           }
-
         }
       },
-      getDeviceDate() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_GET_DEVICE_DATE',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
-          this.$set(this.selectedDevices, 'currentDate', res.data.data);
-        }).catch(err => {
-          console.log(err);
-        })
+      async getDeviceDate() {
+        try {
+          const {data: {data: deviceDate}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_GET_DEVICE_DATE',
+            deviceId: this.selectedDevices._id
+          });
+          this.$set(this.selectedDevices, 'currentDate', deviceDate);
+        } catch (e) {
+          console.error(e)
+        }
       },
-      setDeviceTimeZone() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_SET_TIME_ZONE',
-          deviceId: this.selectedDevices._id
-        }).then(res => () => console.log(res))
-            .catch(err => console.log(err));
+      async setDeviceTimeZone() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_SET_TIME_ZONE',
+            deviceId: this.selectedDevices._id
+          })
+        } catch (e) {
+          console.error(e);
+        }
       },
-      setLocationService() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_SET_LOCATION_SERVICES',
-          deviceId: this.selectedDevices._id
-        }).then(res => () => console.log(res))
-            .catch(err => console.log(err));
+      async setLocationService() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_SET_LOCATION_SERVICES',
+            deviceId: this.selectedDevices._id
+          })
+        } catch (e) {
+          console.error(e);
+        }
       },
       async getLocationServicesStatus() {
-        const result = await axios.post(cms.baseUrl + 'digital/p2p', {
+        const {data: {data: locationServiceProviders}} = await axios.post(cms.baseUrl + 'digital/p2p', {
           event: 'APP_ACTION_GET_LOCATION_SERVICES_STATUS',
           deviceId: this.selectedDevices._id
         });
-        this.$set(this.selectedDevices, 'locationServicesProviders', result.data.data)
+        this.$set(this.selectedDevices, 'locationServicesProviders', locationServiceProviders);
       }
     },
     mounted() {

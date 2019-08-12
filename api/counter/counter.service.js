@@ -11,15 +11,10 @@ cms.registerSchema(CounterSchema, {
 
 const Counter = cms.getModel('Counter');
 
-module.exports.getLatestCount = function (collectionName) {
-  return new Promise((resolve, reject) => {
-    Counter.findOneAndUpdate({ collectionName: collectionName }, { collectionName: collectionName, $inc: { 'counter': 1 } }, { new: true, upsert: true })
-      .then(data => {
-        resolve(data.counter);
-      })
-      .catch(err => {
-        reject(err);
-      });
-
-  });
+module.exports.getLatestCount = async function (collectionName) {
+  const result = await Counter.findOneAndUpdate({collectionName: collectionName}, {
+    collectionName: collectionName,
+    $inc: {'counter': 1}
+  }, {new: true, upsert: true});
+  return result.counter;
 };

@@ -27,6 +27,7 @@ const DeviceSchema = Joi.object().keys({
   appVersionCode: [Joi.string(), Joi.number()]
 });
 
+//legacy API
 module.exports.register = function (req, res) {
 
   const info = {};

@@ -1,298 +1,330 @@
 <template>
-    <v-layout row style="height: 100%">
-        <v-flex shrink
-                style="border-right: 1px solid #ddd; max-width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
-            <v-list dense two-line avatar>
-                <template v-for="(item, index) in sortedDevices"
-                >
+  <v-layout row style="height: 100%">
+    <v-flex shrink
+            style="border-right: 1px solid #ddd; max-width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
+      <v-list dense two-line avatar>
+        <template v-for="(item, index) in sortedDevices"
+        >
+          <v-list-tile
+              :key="item._id"
+              :class="{'selected-playlist':isSelected(item)}"
+              @click="selectItem(item)"
+          >
+            <v-list-tile-avatar>
+              <i class="fas fa-mobile-alt" style="font-size: 1.5em; position: relative"
+                 :style="{opacity: item.isRegistered ? 1 : 0.5}">
+                <i class="fas fa-question" v-if="!item.isRegistered"
+                   style="position: absolute; top: 50%; left: 50%; font-size: 10px; margin-top: -6.5px; margin-left: -4px"></i>
+              </i>
+            </v-list-tile-avatar>
+            <v-list-tile-content>
+              <v-list-tile-title v-if="item.isRegistered">{{item.name}}</v-list-tile-title>
+              <v-list-tile-title v-else>Unregistered Device</v-list-tile-title>
+              <v-list-tile-sub-title>{{item.resolution}} <span
+                  v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
+                <span v-else>(ver. {{item.appVersionCode}})</span>
+              </v-list-tile-sub-title>
+            </v-list-tile-content>
+            <v-list-tile-action>
+              <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
+            </v-list-tile-action>
+          </v-list-tile>
+          <v-divider v-if="index!==sortedDevices.length-1" style="opacity: 0.5; margin: 0 20px"></v-divider>
+        </template>
+
+      </v-list>
+    </v-flex>
+    <v-flex v-if="selectedDevices"
+            style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto"
+            :key="selectedDevices._id">
+      <v-layout row wrap>
+        <v-flex shrink md12 v-if="error">
+          <v-card-title>{{error}}</v-card-title>
+          <v-card-title v-if="lastOnline">last online: {{lastOnline.date}}</v-card-title>
+        </v-flex>
+        <v-card-title v-if="connecting && !error">Connecting to device...
+        </v-card-title>
+        <v-flex md12 v-else-if="!error && selectedDevices && selectedDevices.isRegistered">
+          <v-tabs
+              v-model="active"
+              color="cyan"
+              dark
+              slider-color="yellow"
+          >
+            <v-tab
+                ripple
+            >
+              File Manager
+
+            </v-tab>
+            <v-tab
+                ripple
+            >
+              Playlist
+            </v-tab>
+            <v-tab
+                ripple
+            >
+              Schedule
+            </v-tab>
+            <v-tab
+                ripple
+            >
+              Device Control
+            </v-tab>
+            <v-tab
+                ripple
+            >
+              Device Logs
+            </v-tab>
+            <v-layout justify-end align-center style="color: #fff">
+              <div class="mx-2 pa-2">
+                <v-btn flat @click="showModalRegister=true">Edit device info</v-btn>
+              </div>
+              <div class="pa-2">
+                Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
+                (MB)
+              </div>
+            </v-layout>
+          </v-tabs>
+          <v-tabs-items v-model="active" style="width: 100%; max-height: calc(100vh - 100px); overflow: auto">
+            <v-tab-item
+            >
+              <v-card>
+                <v-list>
+                  <template v-for="(item, index) in files">
                     <v-list-tile
-                            :key="item._id"
-                            :class="{'selected-playlist':isSelected(item)}"
-                            @click="selectItem(item)"
+                        :key="item"
+                        avatar
+                        class="py-2"
+                        style="width: 100%"
                     >
-                        <v-list-tile-avatar>
-                            <i class="fas fa-mobile-alt" style="font-size: 1.5em; position: relative"
-                               :style="{opacity: item.isRegistered ? 1 : 0.5}">
-                                <i class="fas fa-question" v-if="!item.isRegistered"
-                                   style="position: absolute; top: 50%; left: 50%; font-size: 10px; margin-top: -6.5px; margin-left: -4px"></i>
-                            </i>
-                        </v-list-tile-avatar>
+                      <v-list-tile-avatar>
+                        <i class="far fa-folder grid-icon"></i>
+                      </v-list-tile-avatar>
+                      <v-list-tile-content>
+                        <v-list-tile-title>name: {{item}}</v-list-tile-title>
+                        <v-list-tile-sub-title class="red--text"
+                                               v-if="isFileNotInAnyPlaylist(item)">
+                          This media is not in any playlist
+                        </v-list-tile-sub-title>
+                      </v-list-tile-content>
+                      <v-list-tile-action>
+                        <v-btn icon ripple @click="deleteFile(item)">
+                          <v-icon color="grey lighten-1">delete</v-icon>
+                        </v-btn>
+                      </v-list-tile-action>
+                    </v-list-tile>
+                    <v-divider v-if="index!==files.length-1"/>
+                  </template>
+                </v-list>
+              </v-card>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card style="width: 100%">
+                <v-expansion-panel v-if="Array.isArray(playlist)">
+                  <v-expansion-panel-content v-for="item in playlist" :key="item.name">
+                    <template v-slot:header class.native="pa-2">
+                      <v-list-tile
+                          class="py-2"
+                          style="width: 100%"
+                      >
                         <v-list-tile-content>
-                            <v-list-tile-title v-if="item.isRegistered">{{item.name}}</v-list-tile-title>
-                            <v-list-tile-title v-else>Unregistered Device</v-list-tile-title>
-                            <v-list-tile-sub-title>{{item.resolution}} <span v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
-                            </v-list-tile-sub-title>
+                          <v-list-tile-title>name: {{item.name}}
+                          </v-list-tile-title>
                         </v-list-tile-content>
                         <v-list-tile-action>
-                            <i class="fas fa-circle" :class="isOnline(item)?'online':'offline'"></i>
+                          <v-layout row>
+                            <v-btn icon ripple
+                                   @click.prevent.stop="deletePlaylist(item)">
+                              <v-icon color="grey lighten-1">delete</v-icon>
+                            </v-btn>
+                          </v-layout>
                         </v-list-tile-action>
-                    </v-list-tile>
-                    <v-divider v-if="index!==sortedDevices.length-1" style="opacity: 0.5; margin: 0 20px"></v-divider>
-                </template>
+                      </v-list-tile>
+                      <v-divider></v-divider>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <template v-for="(cItem, index) in item.content"
+                        >
+                          <v-list-tile
+                              v-if="cItem.media"
+                              avatar
+                              :key="cItem.media.path"
+                              class="py-2"
+                              style="width: 100%"
+                          >
+                            <v-list-tile-avatar size="100">
+                              <thumbnail :item="cItem.media"></thumbnail>
+                            </v-list-tile-avatar>
+                            <v-list-tile-content>
+                              <v-list-tile-title>name: {{cItem.media.name}}
+                              </v-list-tile-title>
+                              <v-list-tile-sub-title class="red--text"
+                                                     v-if="isFileNotExists(cItem.media.name + cItem.media.ext)">
+                                This file is not existed in device's storage
+                              </v-list-tile-sub-title>
+                            </v-list-tile-content>
+                          </v-list-tile>
+                          <v-divider v-if="index!==item.content.length-1"></v-divider>
+                        </template>
+                      </v-list>
+                    </v-card>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-card>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card style="width: 100%">
+                <v-expansion-panel v-if="Array.isArray(playlist)">
+                  <v-expansion-panel-content v-for="model in schedule" :key="model._id">
+                    <template v-slot:header class.native="pa-2">
+                      <v-list-tile
+                          class="py-2"
+                          style="width: 100%"
+                      >
+                        <v-list-tile-content>
+                          <v-list-tile-title>Schedule Name: {{model.name}}</v-list-tile-title>
+                          <v-list-tile-sub-title>
+                            Time: from {{model.activeFrom}} to {{model.activeTo}}
+                          </v-list-tile-sub-title>
+                        </v-list-tile-content>
+                        <v-list-tile-action>
+                          <v-layout row>
+                            <v-btn icon ripple
+                                   @click.prevent.stop="deleteSchedule(model)">
+                              <v-icon color="grey lighten-1">delete</v-icon>
+                            </v-btn>
+                          </v-layout>
+                        </v-list-tile-action>
+                      </v-list-tile>
+                      <v-divider></v-divider>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <template v-for="(cItem, index) in model.weekdaySchedule"
+                        >
+                          <v-list-tile
+                              :key="index"
+                              class="py-2"
+                              style="width: 100%"
+                          >
+                            <v-list-tile-content>
+                              <v-list-tile-title> {{cItem.playlist.name}}
 
-            </v-list>
+                              </v-list-tile-title>
+                              <v-list-tile-sub-title>
+                                {{cItem.weekdays.join(', ')}}, {{cItem.from}} -
+                                {{cItem.to}}{{cItem.in==='next day'? '(Next Day)':''}} :
+                              </v-list-tile-sub-title>
+                            </v-list-tile-content>
+                          </v-list-tile>
+                          <v-divider
+                              v-if="index!==model.weekdaySchedule.length-1"></v-divider>
+                        </template>
+                      </v-list>
+                    </v-card>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-card>
+            </v-tab-item>
+            <v-tab-item>
+              <v-card>
+                <div class="pa-2">
+                  Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
+                  (MB)
+                  <div style="width: 200px; height: 20px; border-radius: 10px; overflow: hidden; background: #ddd">
+                    <div style="height: 20px; background: #03a9f4"
+                         :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
+                  </div>
+                </div>
+                <div class="pa-2"
+                     :class="needUpdate?'orange--text':'green--text'">
+                  App version on device: {{selectedDevices.appVersionCode}}
+                  <v-btn v-if="needUpdate" @click="updateApp" flat>
+                    Update
+                  </v-btn>
+                </div>
+                <div class="pa-2" v-if="currentVersion">
+                  Current version: {{currentVersion}}
+                </div>
+                <div class="pa-2" v-if="selectedDevices.currentDate">
+                  Date: {{selectedDevices.currentDate}}
+                </div>
+                <div class="pa-2" v-if="selectedDevices.locationServicesProviders">
+                  Location Services: {{selectedDevices.locationServicesProviders}}
+                </div>
+                <v-btn @click="getDeviceDate">
+                  Get current date
+                </v-btn>
+                <v-btn @click="setDeviceTimeZone">
+                  Set time zone
+                </v-btn>
+                <v-btn @click="getLocationServicesStatus">
+                  Get location services status
+                </v-btn>
+                <v-btn @click="setLocationService">
+                  Enable location service
+                </v-btn>
+                <v-btn @click="deleteDeviceData">
+                  Delete all device data
+                </v-btn>
+                <map-maker v-if="selectedDevices.coordinates"
+                           :lat="selectedDevices.coordinates.latitude"
+                           :lng="selectedDevices.coordinates.longitude"></map-maker>
+              </v-card>
+            </v-tab-item>
+            <v-tab-item>
+              <v-sheet>
+                <v-flex>
+                  <v-btn @click="getLogList">list logs</v-btn>
+                  <v-btn @click="clearLog">Clear Logs</v-btn>
+                  <v-select v-model="selectedLog" :items="logs" label="Select log" v-show="logs" class="pa-2"
+                            hide-details></v-select>
+                  <v-textarea v-model="log" autogrow ref="log"
+                              style="font-family: monospace"></v-textarea>
+                  <v-btn @click="getLog" v-show="selectedLog" color="primary">Get Log</v-btn>
+                  <v-btn @click="copyLog">Copy</v-btn>
+                  <v-btn v-if="downloadLink" :href="downloadLink" download="log.txt">Download</v-btn>
+                </v-flex>
+                <v-flex>
+                  <v-btn @click="getStartLog">get start logs</v-btn>
+                  <v-btn>clear start logs</v-btn>
+                  <v-textarea v-model="startLog" auto-grow style="font-family: monospace">
+                  </v-textarea>
+                </v-flex>
+
+              </v-sheet>
+            </v-tab-item>
+          </v-tabs-items>
         </v-flex>
-        <v-flex v-if="selectedDevices"
-                style="border-left: 1px solid #ddd; flex: 1; min-width: 0; max-height: calc(100vh - 50px); overflow: auto"
-                :key="selectedDevices._id">
-            <v-layout row wrap>
-                <v-flex shrink md12 v-if="error">
-                    <v-card-title>{{error}}</v-card-title>
-                    <v-card-title v-if="lastOnline">last online: {{lastOnline.date}}</v-card-title>
-                </v-flex>
-                <v-card-title v-if="connecting && !error">Connecting to device...
-                </v-card-title>
-                <v-flex md12 v-else-if="!error && selectedDevices && selectedDevices.isRegistered">
-                    <v-tabs
-                            v-model="active"
-                            color="cyan"
-                            dark
-                            slider-color="yellow"
-                    >
-                        <v-tab
-                                ripple
-                        >
-                            File Manager
-
-                        </v-tab>
-                        <v-tab
-                                ripple
-                        >
-                            Playlist
-                        </v-tab>
-                        <v-tab
-                                ripple
-                        >
-                            Schedule
-                        </v-tab>
-                        <v-tab
-                                ripple
-                        >
-                            Device Control
-                        </v-tab>
-                        <v-tab
-                                ripple
-                        >
-                            Device Logs
-                        </v-tab>
-                        <v-layout justify-end align-center style="color: #fff">
-                            <div class="mx-2 pa-2">
-                                <v-btn flat @click="showModalRegister=true">Edit device info</v-btn>
-                            </div>
-                            <div class="pa-2">
-                                Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
-                                (MB)
-                            </div>
-                        </v-layout>
-                    </v-tabs>
-                    <v-tabs-items v-model="active" style="width: 100%; max-height: calc(100vh - 100px); overflow: auto">
-                        <v-tab-item
-                        >
-                            <v-card>
-                                <v-list>
-                                    <template v-for="(item, index) in files">
-                                        <v-list-tile
-                                                :key="item"
-                                                avatar
-                                                class="py-2"
-                                                style="width: 100%"
-                                        >
-                                            <v-list-tile-avatar>
-                                                <i class="far fa-folder grid-icon"></i>
-                                            </v-list-tile-avatar>
-                                            <v-list-tile-content>
-                                                <v-list-tile-title>name: {{item}}</v-list-tile-title>
-                                                <v-list-tile-sub-title class="red--text"
-                                                                       v-if="isFileNotInAnyPlaylist(item)">
-                                                    This media is not in any playlist
-                                                </v-list-tile-sub-title>
-                                            </v-list-tile-content>
-                                            <v-list-tile-action>
-                                                <v-btn icon ripple @click="deleteFile(item)">
-                                                    <v-icon color="grey lighten-1">delete</v-icon>
-                                                </v-btn>
-                                            </v-list-tile-action>
-                                        </v-list-tile>
-                                        <v-divider v-if="index!==files.length-1" />
-                                    </template>
-                                </v-list>
-                            </v-card>
-                        </v-tab-item>
-                        <v-tab-item>
-                            <v-card style="width: 100%">
-                                <v-expansion-panel v-if="Array.isArray(playlist)">
-                                    <v-expansion-panel-content v-for="item in playlist" :key="item.name">
-                                        <template v-slot:header class.native="pa-2">
-                                            <v-list-tile
-                                                    class="py-2"
-                                                    style="width: 100%"
-                                            >
-                                                <v-list-tile-content>
-                                                    <v-list-tile-title>name: {{item.name}}
-                                                    </v-list-tile-title>
-                                                </v-list-tile-content>
-                                                <v-list-tile-action>
-                                                    <v-layout row>
-                                                        <v-btn icon ripple
-                                                               @click.prevent.stop="deletePlaylist(item)">
-                                                            <v-icon color="grey lighten-1">delete</v-icon>
-                                                        </v-btn>
-                                                    </v-layout>
-                                                </v-list-tile-action>
-                                            </v-list-tile>
-                                            <v-divider></v-divider>
-                                        </template>
-                                        <v-card>
-                                            <v-list>
-                                                <template v-for="(cItem, index) in item.content"
-                                                >
-                                                    <v-list-tile
-                                                            v-if="cItem.media"
-                                                            avatar
-                                                            :key="cItem.media.path"
-                                                            class="py-2"
-                                                            style="width: 100%"
-                                                    >
-                                                        <v-list-tile-avatar size="100">
-                                                            <thumbnail :item="cItem.media"></thumbnail>
-                                                        </v-list-tile-avatar>
-                                                        <v-list-tile-content>
-                                                            <v-list-tile-title>name: {{cItem.media.name}}
-                                                            </v-list-tile-title>
-                                                            <v-list-tile-sub-title class="red--text"
-                                                                                   v-if="isFileNotExists(cItem.media.name + cItem.media.ext)">
-                                                                This file is not existed in device's storage
-                                                            </v-list-tile-sub-title>
-                                                        </v-list-tile-content>
-                                                    </v-list-tile>
-                                                    <v-divider v-if="index!==item.content.length-1"></v-divider>
-                                                </template>
-                                            </v-list>
-                                        </v-card>
-                                    </v-expansion-panel-content>
-                                </v-expansion-panel>
-                            </v-card>
-                        </v-tab-item>
-                        <v-tab-item>
-                            <v-card style="width: 100%">
-                                <v-expansion-panel v-if="Array.isArray(playlist)">
-                                    <v-expansion-panel-content v-for="model in schedule" :key="model._id">
-                                        <template v-slot:header class.native="pa-2">
-                                            <v-list-tile
-                                                    class="py-2"
-                                                    style="width: 100%"
-                                            >
-                                                <v-list-tile-content>
-                                                    <v-list-tile-title>Schedule Name: {{model.name}}</v-list-tile-title>
-                                                    <v-list-tile-sub-title>
-                                                        Time: from {{model.activeFrom}} to {{model.activeTo}}
-                                                    </v-list-tile-sub-title>
-                                                </v-list-tile-content>
-                                                <v-list-tile-action>
-                                                    <v-layout row>
-                                                        <v-btn icon ripple
-                                                               @click.prevent.stop="deleteSchedule(model)">
-                                                            <v-icon color="grey lighten-1">delete</v-icon>
-                                                        </v-btn>
-                                                    </v-layout>
-                                                </v-list-tile-action>
-                                            </v-list-tile>
-                                            <v-divider></v-divider>
-                                        </template>
-                                        <v-card>
-                                            <v-list>
-                                                <template v-for="(cItem, index) in model.weekdaySchedule"
-                                                >
-                                                    <v-list-tile
-                                                            :key="index"
-                                                            class="py-2"
-                                                            style="width: 100%"
-                                                    >
-                                                        <v-list-tile-content>
-                                                            <v-list-tile-title> {{cItem.playlist.name}}
-
-                                                            </v-list-tile-title>
-                                                            <v-list-tile-sub-title>
-                                                                {{cItem.weekdays.join(', ')}}, {{cItem.from}} -
-                                                                {{cItem.to}}{{cItem.in==='next day'? '(Next Day)':''}} :
-                                                            </v-list-tile-sub-title>
-                                                        </v-list-tile-content>
-                                                    </v-list-tile>
-                                                    <v-divider
-                                                            v-if="index!==model.weekdaySchedule.length-1"></v-divider>
-                                                </template>
-                                            </v-list>
-                                        </v-card>
-                                    </v-expansion-panel-content>
-                                </v-expansion-panel>
-                            </v-card>
-                        </v-tab-item>
-                        <v-tab-item>
-                            <v-card>
-                                <div class="pa-2">
-                                    Free storage: {{toMegabytes(freeStorage.free)}} / {{toMegabytes(freeStorage.total)}}
-                                    (MB)
-                                    <div style="width: 200px; height: 20px; border-radius: 10px; overflow: hidden; background: #ddd">
-                                        <div style="height: 20px; background: #03a9f4"
-                                             :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
-                                    </div>
-                                </div>
-                                <div class="pa-2"
-                                     :class="needUpdate?'orange--text':'green--text'">
-                                    App version on device: {{selectedDevices.appVersionCode}}
-                                    <v-btn v-if="needUpdate" @click="updateApp" flat>
-                                        Update
-                                    </v-btn>
-                                </div>
-                                <div class="pa-2" v-if="currentVersion">
-                                    Current version: {{currentVersion}}
-                                </div>
-
-                                <v-btn @click="deleteDeviceData">
-                                    Delete all device data
-                                </v-btn>
-                                <map-maker v-if="selectedDevices.coordinates"
-                                           :lat="selectedDevices.coordinates.latitude"
-                                           :lng="selectedDevices.coordinates.longitude"></map-maker>
-                            </v-card>
-                        </v-tab-item>
-                        <v-tab-item>
-                            <v-card>
-                                <v-btn @click="getLog">GetLog</v-btn>
-                                <v-btn @click="clearLog">ClearLog</v-btn>
-                                <a :href="downloadLink" download="log.txt">Download</a>
-                                <v-textarea v-model="log" ref="log"></v-textarea>
-                                <v-btn @click="copyLog">Copy</v-btn>
-                            </v-card>
-                        </v-tab-item>
-                    </v-tabs-items>
-                </v-flex>
-                <v-flex v-else-if="selectedDevices && !selectedDevices.isRegistered">
-                    <div class="pa-5">
-                        Device is not register
-                        <v-btn @click="showModalRegister = true" depressed>Register</v-btn>
-                        <div class="ma-5"></div>
-                        <div style="max-width: 700px" v-if="selectedDevices.coordinates">
-                            <map-maker :lat="selectedDevices.coordinates.latitude"
-                                       :lng="selectedDevices.coordinates.longitude"></map-maker>
-                        </div>
-                    </div>
-                </v-flex>
-            </v-layout>
+        <v-flex v-else-if="selectedDevices && !selectedDevices.isRegistered">
+          <div class="pa-5">
+            Device is not registered
+            <v-btn @click="showModalRegister = true" depressed>Register</v-btn>
+            <div class="ma-5"></div>
+            <div style="max-width: 700px" v-if="selectedDevices.coordinates">
+              <map-maker :lat="selectedDevices.coordinates.latitude"
+                         :lng="selectedDevices.coordinates.longitude"></map-maker>
+            </div>
+          </div>
         </v-flex>
-        <v-dialog v-model="showModalRegister" width="700" v-if="selectedDevices">
-            <v-card pa-3>
-                <v-card-title>Device is not registered, please register</v-card-title>
-                <v-card-text>
-                    <g-field :fields="gfield" :model="selectedDevices"></g-field>
-                </v-card-text>
-                <v-card-actions>
-                    <v-btn flat @click="onSaveDevice">Save</v-btn>
-                    <v-btn flat @click="showModalRegister=false">Cancel</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-    </v-layout>
+      </v-layout>
+    </v-flex>
+    <v-dialog v-model="showModalRegister" width="700" v-if="selectedDevices">
+      <v-card pa-3>
+        <v-card-title>Device is not registered, please register</v-card-title>
+        <v-card-text>
+          <g-field :fields="gfield" :model="selectedDevices"></g-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn flat @click="onSaveDevice">Save</v-btn>
+          <v-btn flat @click="showModalRegister=false">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-layout>
 </template>
 
 
@@ -320,6 +352,9 @@
       freeStorage: {},
       showModalRegister: false,
       currentVersion: '',
+      logs: null,
+      startLog: '',
+      selectedLog: '',
       log: '',
       downloadLink: ''
     }),
@@ -381,19 +416,33 @@
           console.log(err);
         });
       },
-      getLog() {
+      getLogList() {
         axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_GET_LOG',
+          event: 'APP_LISTENER_GET_LOG_LIST',
           deviceId: this.selectedDevices._id
         }).then(res => {
           console.log(res);
-          var data = new Blob([res.data.data], { type: 'text/plain' });
-          var url = window.URL.createObjectURL(data);
-          this.log = res.data.data.replace(/↵/g, '\n');
-          this.downloadLink = url;
-        }).catch(err => {
-          console.log(err);
+          this.logs = res.data.data;
         });
+      },
+      getLog() {
+        this.log = '';
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_GET_LOG',
+          deviceId: this.selectedDevices._id,
+          data: this.selectedLog
+        }).then(value => {
+          console.log(value)
+        }).catch(err => {
+          console.log(err)
+        })
+      },
+      async getStartLog() {
+        this.startLog = '';
+        await axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_PUSH_START_LOG',
+          deviceId: this.selectedDevices._id,
+        })
       },
       deleteDeviceData() {
         axios.post(cms.baseUrl + 'digital/p2p', {
@@ -418,18 +467,18 @@
           isRegistered: true
         };
         cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data)
-          .then(res => {
-            this.getDevices();
-            this.showModalRegister = false;
-            axios.post(cms.baseUrl + 'digital/p2p', {
-              event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
-              deviceId: this.selectedDevices._id
-            }).then(res => {
-              console.log(res);
-            }).catch(err => {
-              console.log(err);
+            .then(res => {
+              this.getDevices();
+              this.showModalRegister = false;
+              axios.post(cms.baseUrl + 'digital/p2p', {
+                event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
+                deviceId: this.selectedDevices._id
+              }).then(res => {
+                console.log(res);
+              }).catch(err => {
+                console.log(err);
+              });
             });
-          });
       },
       isOnline(device) {
         return this.onlineDevices.indexOf(device._id) > -1;
@@ -465,6 +514,20 @@
         this.$options.socket.on('WEB_EVENT_LIST_ONLINE_DEVICE', data => {
           this.onlineDevices = data;
         });
+        this.$options.socket.on('WEB_EVENT_LOG_SEND', ({status, data}) => {
+          if (status === 'finished') {
+            const blob = new Blob([this.log], {type: 'text/plain'});
+            const url = window.URL.createObjectURL(blob);
+            this.downloadLink = url;
+          } else {
+            this.log += data;
+          }
+        });
+        this.$options.socket.on('WEB_EVENT_PUSH_START_LOG', ({status, data}) => {
+          if (status !== 'finished') {
+            this.startLog += data;
+          }
+        });
       },
       async getDevices() {
         const Model = cms.getModel('Device');
@@ -488,7 +551,7 @@
         this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', res._id, (err, files) => {
           if (err) {
             this.error = err;
-            cms.getModel('ConnectionHistory').findOne({ device: this.selectedDevices._id }).sort('-date').then(res => {
+            cms.getModel('ConnectionHistory').findOne({device: this.selectedDevices._id}).sort('-date').then(res => {
               this.lastOnline = res;
             });
           } else {
@@ -570,17 +633,48 @@
         if (MY_APP_DESTRIBUTION_GROUP && MY_APP_SECRET_KEY && MY_API_TOKEN) {
           try {
             const app = await axios.get(`https://api.appcenter.ms/v0.1/public/sdk/apps/${MY_APP_SECRET_KEY}/distribution_groups/${MY_APP_DESTRIBUTION_GROUP}/releases/latest`,
-              {
-                headers: {
-                  'X-API-Token': MY_API_TOKEN
-                }
-              });
+                {
+                  headers: {
+                    'X-API-Token': MY_API_TOKEN
+                  }
+                });
             this.currentVersion = app.data.version;
           } catch (e) {
             console.log(e);
           }
 
         }
+      },
+      getDeviceDate() {
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_GET_DEVICE_DATE',
+          deviceId: this.selectedDevices._id
+        }).then(res => {
+          this.$set(this.selectedDevices, 'currentDate', res.data.data);
+        }).catch(err => {
+          console.log(err);
+        })
+      },
+      setDeviceTimeZone() {
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_SET_TIME_ZONE',
+          deviceId: this.selectedDevices._id
+        }).then(res => () => console.log(res))
+            .catch(err => console.log(err));
+      },
+      setLocationService() {
+        axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_SET_LOCATION_SERVICES',
+          deviceId: this.selectedDevices._id
+        }).then(res => () => console.log(res))
+            .catch(err => console.log(err));
+      },
+      async getLocationServicesStatus() {
+        const result = await axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_GET_LOCATION_SERVICES_STATUS',
+          deviceId: this.selectedDevices._id
+        });
+        this.$set(this.selectedDevices, 'locationServicesProviders', result.data.data)
       }
     },
     mounted() {
@@ -595,25 +689,25 @@
 </script>
 
 <style scoped lang="scss">
-    .selected-playlist {
-        background-color: #03a9f4;
-        color: #fff !important;
+  .selected-playlist {
+    background-color: #03a9f4;
+    color: #fff !important;
 
-        .v-list__tile__title {
-            transition: none !important;
-        }
-
-        .v-list__tile__sub-title {
-            color: #fff !important;
-        }
+    .v-list__tile__title {
+      transition: none !important;
     }
 
-    .online {
-        color: #40bf5e
+    .v-list__tile__sub-title {
+      color: #fff !important;
     }
+  }
 
-    .offline {
-        color: #c14444
-    }
+  .online {
+    color: #40bf5e
+  }
+
+  .offline {
+    color: #c14444
+  }
 </style>
 

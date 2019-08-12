@@ -178,6 +178,14 @@ module.exports = cms => {
       });
     });
 
+    socket.on('APP_LISTENER_SEND_LOG', async (status, data) => {
+      await webNamespace.emit('WEB_EVENT_LOG_SEND', { status: status, data: data });
+    });
+
+    socket.on('APP_ACTION_PUSH_START_LOG', async (status, data) => {
+      await webNamespace.emit('WEB_EVENT_PUSH_START_LOG', { status, data });
+    });
+
     socket.on('disconnect', () => {
       // update connection history
       changeStatusDevice(socket, false);

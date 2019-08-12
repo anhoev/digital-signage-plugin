@@ -32,6 +32,23 @@ module.exports.register = async function (info) {
   });
 };
 
+module.exports.fetchDeviceInfo = async function (token) {
+  return Device.findOne({token: token});
+};
+
+module.exports.pushDeviceInfo = async function (deviceInfo) {
+  const { token } = deviceInfo;
+  const existingDevice = await Device.findOne({ token });
+  if (existingDevice) {
+    await Device.findOneAndUpdate({ token }, deviceInfo)
+  } else {
+    const latestCount = await getLatestCount('Device');
+    await Device.create({
+      ...deviceInfo, deviceCode: latestCount
+    });
+  }
+};
+
 module.exports.pushMessage = async function (tokens, data) {
   const message = {
     data: { files: JSON.stringify(data), type: 'file' },

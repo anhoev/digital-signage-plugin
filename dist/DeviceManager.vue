@@ -183,6 +183,9 @@
                     <div style="height: 20px; background: #03a9f4" :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
                   </div>
                 </div>
+                <v-btn @click="deleteDeviceData" color="red" class="white--text">
+                  Delete all device data
+                </v-btn>
                 <div class="pa-2" :class="needUpdate?'orange--text':'green--text'">
                   App version on device: {{selectedDevices.appVersionCode}}
                   <v-btn v-if="needUpdate" @click="updateApp" flat="">
@@ -192,27 +195,32 @@
                 <div class="pa-2" v-if="currentVersion">
                   Current version: {{currentVersion}}
                 </div>
-                <div class="pa-2" v-if="selectedDevices.currentDate">
-                  Date: {{selectedDevices.currentDate}}
-                </div>
-                <div class="pa-2" v-if="selectedDevices.locationServicesProviders">
-                  Location Services: {{selectedDevices.locationServicesProviders}}
-                </div>
-                <v-btn @click="getDeviceDate">
-                  Get current date
-                </v-btn>
-                <v-btn @click="setDeviceTimeZone">
-                  Set time zone
-                </v-btn>
-                <v-btn @click="getLocationServicesStatus">
-                  Get location services status
-                </v-btn>
-                <v-btn @click="setLocationService">
-                  Enable location service
-                </v-btn>
-                <v-btn @click="deleteDeviceData">
-                  Delete all device data
-                </v-btn>
+                <v-layout row="" wrap="">
+                  <div class="pa-2" style="margin: auto 0; flex-basis: 300px">
+                    Date: {{selectedDevices.currentDate || 'not fetched'}}
+                  </div>
+                  <v-layout>
+                    <v-btn @click="getDeviceDate" flat="" color="primary">
+                      Get current date
+                    </v-btn>
+                    <v-btn @click="setDeviceTimeZone" flat="" color="primary" :disabled="disabledSetTimezoneBtn">
+                      Set time zone
+                    </v-btn>
+                  </v-layout>
+                </v-layout>
+                <v-layout row="" wrap="">
+                  <div class="pa-2" style="margin: auto 0; flex-basis: 300px">
+                    Location Services: {{selectedDevices.locationServicesProviders || 'not fetched'}}
+                  </div>
+                  <v-layout>
+                    <v-btn @click="getLocationServicesStatus" flat="" color="primary">
+                      Get status
+                    </v-btn>
+                    <v-btn @click="setLocationService" flat="" color="primary" :disabled="disabledSetLocationSvcBtn">
+                      Enable location services
+                    </v-btn>
+                  </v-layout>
+                </v-layout>
                 <map-maker v-if="selectedDevices.coordinates" :lat="selectedDevices.coordinates.latitude" :lng="selectedDevices.coordinates.longitude"></map-maker>
               </v-card>
             </v-tab-item>
@@ -221,16 +229,22 @@
                 <v-flex>
                   <v-btn @click="getLogList">list logs</v-btn>
                   <v-btn @click="clearLog">Clear Logs</v-btn>
-                  <v-select v-model="selectedLog" :items="logs" label="Select log" v-show="logs" class="pa-2" hide-details=""></v-select>
-                  <v-textarea v-model="log" autogrow="" ref="log" style="font-family: monospace"></v-textarea>
+                  <v-select v-model="selectedLog" :items="logs" label="Select log" class="pa-2" hide-details=""></v-select>
+                  <v-textarea v-model="selectedLogContent" ref="log" clearable="" :loading="loadingLog" style="font-family: monospace"></v-textarea>
                   <v-btn @click="sendGetLogEvent" v-show="selectedLog" color="primary">Get Log</v-btn>
                   <v-btn @click="copyLog">Copy</v-btn>
                   <v-btn v-if="downloadLink" :href="downloadLink" download="log.txt">Download</v-btn>
                 </v-flex>
                 <v-flex>
                   <v-btn @click="getStartLog">get start logs</v-btn>
-                  <v-btn>clear start logs</v-btn>
-                  <v-textarea v-model="startLog" auto-grow="" style="font-family: monospace">
+                  <v-btn @click="clearStartLog">clear start logs</v-btn>
+                  <v-textarea v-model="startLog" clearable="" style="font-family: monospace">
+                  </v-textarea>
+                </v-flex>
+                <v-flex>
+                  <v-btn @click="getMemoryLog">get memory logs</v-btn>
+                  <v-btn @click="clearMemoryLog">clear memory logs</v-btn>
+                  <v-textarea v-model="memoryLog" clearable="" style="font-family: monospace">
                   </v-textarea>
                 </v-flex>
 
@@ -298,10 +312,12 @@ var _default = {
     freeStorage: {},
     showModalRegister: false,
     currentVersion: '',
-    logs: null,
+    logs: [],
     startLog: '',
+    memoryLog: '',
     selectedLog: '',
-    log: '',
+    selectedLogContent: '',
+    loadingLog: false,
     downloadLink: ''
   }),
   props: {
@@ -332,6 +348,14 @@ var _default = {
 
     needUpdate() {
       return Number(this.selectedDevices.appVersionCode) < Number(this.currentVersion);
+    },
+
+    disabledSetTimezoneBtn() {
+      return !this.selectedDevices.currentDate || this.selectedDevices.currentDate.includes('CEST');
+    },
+
+    disabledSetLocationSvcBtn() {
+      return !this.selectedDevices.locationServicesProviders || this.selectedDevices.locationServicesProviders === 'High accuracy';
     }
 
   },
@@ -348,7 +372,7 @@ var _default = {
           event: 'APP_LISTENER_CLEAR_LOG',
           deviceId: this.selectedDevices._id
         });
-        this.log = '';
+        this.selectedLogContent = '';
         this.downloadLink = '';
       } catch (e) {
         console.error(e);
@@ -387,7 +411,8 @@ var _default = {
     },
 
     async sendGetLogEvent() {
-      this.log = '';
+      this.selectedLogContent = '';
+      this.downloadLink = '';
       const getLogResult = await _axios.default.post(cms.baseUrl + 'digital/p2p', {
         event: 'APP_LISTENER_GET_LOG',
         deviceId: this.selectedDevices._id,
@@ -402,6 +427,38 @@ var _default = {
         event: 'APP_LISTENER_PUSH_START_LOG',
         deviceId: this.selectedDevices._id
       });
+    },
+
+    async clearStartLog() {
+      try {
+        await _axios.default.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_CLEAR_START_LOG',
+          deviceId: this.selectedDevices._id
+        });
+        this.startLog = '';
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
+    async getMemoryLog() {
+      this.memoryLog = '';
+      await _axios.default.post(cms.baseUrl + 'digital/p2p', {
+        event: 'APP_LISTENER_PUSH_MEMORY_LOG',
+        deviceId: this.selectedDevices._id
+      });
+    },
+
+    async clearMemoryLog() {
+      try {
+        await _axios.default.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_CLEAR_MEMORY_LOG',
+          deviceId: this.selectedDevices._id
+        });
+        this.memoryLog = '';
+      } catch (e) {
+        console.error(e);
+      }
     },
 
     async deleteDeviceData() {
@@ -487,12 +544,16 @@ var _default = {
         data
       }) => {
         if (status === 'finished') {
-          const blob = new Blob([this.log], {
+          this.loadingLog = false;
+          const blob = new Blob([this.selectedLogContent], {
             type: 'text/plain'
           });
           this.downloadLink = window.URL.createObjectURL(blob);
+        } else if (status === 'sending') {
+          this.loadingLog = true;
+          this.selectedLogContent += data;
         } else {
-          this.log += data;
+          this.loadingLog = false;
         }
       });
       this.$options.socket.on('WEB_EVENT_PUSH_START_LOG', ({
@@ -501,6 +562,14 @@ var _default = {
       }) => {
         if (status !== 'finished') {
           this.startLog += data;
+        }
+      });
+      this.$options.socket.on('WEB_EVENT_PUSH_MEMORY_LOG', ({
+        status,
+        data
+      }) => {
+        if (status !== 'finished') {
+          this.memoryLog += data;
         }
       });
     },
@@ -518,6 +587,11 @@ var _default = {
       this.files = [];
       this.connecting = true;
       this.error = null;
+      this.logs = [];
+      this.startLog = '';
+      this.selectedLog = '';
+      this.selectedLogContent = '';
+      this.downloadLink = '';
       const Model = cms.getModel('Device');
       const res = await Model.findById(item._id);
       this.selectedDevices = res; // if (!item.isRegistered) {

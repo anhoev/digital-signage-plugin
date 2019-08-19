@@ -186,6 +186,10 @@ module.exports = cms => {
       await webNamespace.emit('WEB_EVENT_PUSH_START_LOG', { status, data });
     });
 
+    socket.on('APP_ACTION_PUSH_MEMORY_LOG', async (status, data) => {
+      await webNamespace.emit('WEB_EVENT_PUSH_MEMORY_LOG', { status, data });
+    });
+
     socket.on('disconnect', () => {
       // update connection history
       changeStatusDevice(socket, false);

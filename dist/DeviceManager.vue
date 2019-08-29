@@ -1,5 +1,5 @@
 <template>
-  <v-layout row="" style="height: 100%">
+  <v-layout row="" style="height: calc(100vh - 48px);">
     <v-flex shrink="" style="border-right: 1px solid #ddd; max-width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
       <v-list dense="" two-line="" avatar="">
         <template v-for="(item, index) in sortedDevices">
@@ -225,30 +225,65 @@
               </v-card>
             </v-tab-item>
             <v-tab-item>
-              <v-sheet>
-                <v-flex>
-                  <v-btn @click="getLogList">list logs</v-btn>
-                  <v-btn @click="clearLog">Clear Logs</v-btn>
-                  <v-select v-model="selectedLog" :items="logs" label="Select log" class="pa-2" hide-details=""></v-select>
-                  <v-textarea v-model="selectedLogContent" ref="log" clearable="" :loading="loadingLog" style="font-family: monospace"></v-textarea>
-                  <v-btn @click="sendGetLogEvent" v-show="selectedLog" color="primary">Get Log</v-btn>
-                  <v-btn @click="copyLog">Copy</v-btn>
-                  <v-btn v-if="downloadLink" :href="downloadLink" download="log.txt">Download</v-btn>
-                </v-flex>
-                <v-flex>
-                  <v-btn @click="getStartLog">get start logs</v-btn>
-                  <v-btn @click="clearStartLog">clear start logs</v-btn>
-                  <v-textarea v-model="startLog" clearable="" style="font-family: monospace">
-                  </v-textarea>
-                </v-flex>
-                <v-flex>
-                  <v-btn @click="getMemoryLog">get memory logs</v-btn>
-                  <v-btn @click="clearMemoryLog">clear memory logs</v-btn>
-                  <v-textarea v-model="memoryLog" clearable="" style="font-family: monospace">
-                  </v-textarea>
-                </v-flex>
-
-              </v-sheet>
+              <v-expansion-panel expand="" v-model="panel">
+                <v-expansion-panel-content :value="true">
+                  <template v-slot:header="">
+                    <div class="headline">App Logs</div>
+                  </template>
+                  <v-card>
+                    <v-card-title>
+                      <v-btn @click="getLogList" color="primary">list logs</v-btn>
+                      <v-btn @click="clearLog">Clear Logs</v-btn>
+                      <v-select v-model="selectedLog" :items="logs" label="Select log" class="pa-2" hide-details=""></v-select>
+                    </v-card-title>
+                    <v-divider></v-divider>
+                    <v-textarea v-model="selectedLogContent" ref="log" :loading="loadingLog" label="Log" box="" hide-details="" clearable="">
+                      <template v-slot:append="">
+                        <v-icon style="cursor: pointer;" @click="showLogAsDialog(selectedLogContent)">launch</v-icon>
+                      </template>
+                    </v-textarea>
+                    <v-card-actions>
+                      <v-btn @click="sendGetLogEvent" v-if="selectedLog" color="primary" flat="">Get Log</v-btn>
+                      <v-spacer></v-spacer>
+                      <v-btn @click="copyLog" flat="">Copy</v-btn>
+                      <v-btn flat="" color="primary" v-if="downloadLink" :href="downloadLink" download="log.txt">Download
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-expansion-panel-content>
+                <v-expansion-panel-content>
+                  <template v-slot:header="">
+                    <div class="headline">Start Logs</div>
+                  </template>
+                  <v-card>
+                    <v-textarea v-model="startLog" box="" hide-details="" label="Log">
+                      <template v-slot:append="">
+                        <v-icon style="cursor: pointer;" @click="showLogAsDialog(startLog)">launch</v-icon>
+                      </template>
+                    </v-textarea>
+                    <v-card-actions>
+                      <v-btn @click="getStartLog" color="primary" flat="">get start logs</v-btn>
+                      <v-btn @click="clearStartLog" flat="">clear start logs</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-expansion-panel-content>
+                <v-expansion-panel-content>
+                  <template v-slot:header="">
+                    <div class="headline">Memory Logs</div>
+                  </template>
+                  <v-card>
+                    <v-textarea v-model="memoryLog" box="" hide-details="" label="Log">
+                      <template v-slot:append="">
+                        <v-icon style="cursor: pointer;" @click="showLogAsDialog(memoryLog)">launch</v-icon>
+                      </template>
+                    </v-textarea>
+                    <v-card-actions>
+                      <v-btn @click="getMemoryLog" color="primary" flat="">get memory logs</v-btn>
+                      <v-btn @click="clearMemoryLog" flat="">clear memory logs</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
             </v-tab-item>
           </v-tabs-items>
         </v-flex>
@@ -264,6 +299,19 @@
         </v-flex>
       </v-layout>
     </v-flex>
+    <v-dialog v-model="showLogDialog" width="1000">
+      <v-card>
+        <v-card-text>
+          <v-textarea box="" hide-details="" label="Log" v-model="logDialogText" class="logDialog" ref="logDialog"></v-textarea>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn flat="" color="primary" @click="copyDialogLog">copy</v-btn>
+          <v-btn flat="" color="primary" @click="downloadDialogLog">download</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn flat="" color="primary" @click="showLogDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="showModalRegister" width="700" v-if="selectedDevices">
       <v-card pa-3="">
         <v-card-title>Device is not registered, please register</v-card-title>
@@ -318,7 +366,11 @@ var _default = {
     selectedLog: '',
     selectedLogContent: '',
     loadingLog: false,
-    downloadLink: ''
+    downloadLink: '',
+    panel: [true, false, false],
+    dateHint: '',
+    showLogDialog: false,
+    logDialogText: ''
   }),
   props: {
     source: String
@@ -360,6 +412,28 @@ var _default = {
 
   },
   methods: {
+    showLogAsDialog(text) {
+      this.logDialogText = text;
+      this.showLogDialog = true;
+    },
+
+    copyDialogLog() {
+      console.log(this.$refs.logDialog);
+      this.$refs.logDialog.$refs.input.select();
+      document.execCommand('copy');
+    },
+
+    downloadDialogLog() {
+      const blob = new Blob([this.logDialogText], {
+        type: 'text/plain'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'log.txt';
+      a.click();
+    },
+
     copyLog() {
       console.log(this.$refs.log);
       this.$refs.log.$refs.input.select();
@@ -411,14 +485,18 @@ var _default = {
     },
 
     async sendGetLogEvent() {
-      this.selectedLogContent = '';
-      this.downloadLink = '';
-      const getLogResult = await _axios.default.post(cms.baseUrl + 'digital/p2p', {
-        event: 'APP_LISTENER_GET_LOG',
-        deviceId: this.selectedDevices._id,
-        data: this.selectedLog
-      });
-      console.log(getLogResult);
+      try {
+        this.selectedLogContent = '';
+        this.downloadLink = '';
+        await _axios.default.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_GET_LOG',
+          deviceId: this.selectedDevices._id,
+          data: this.selectedLog
+        });
+      } catch (e) {
+        this.loadingLog = false;
+        console.error(e);
+      }
     },
 
     async getStartLog() {
@@ -676,7 +754,7 @@ var _default = {
           deviceId: this.selectedDevices._id,
           data: item._id
         });
-        this.schedule = schedule;
+        this.schedule = this.schedule.filter(i => i._id !== item._id);
       } catch (e) {
         console.error(e);
       }
@@ -778,7 +856,7 @@ var _default = {
 };
 exports.default = _default;
 </script> 
-<style scoped>.selected-playlist {
+<style>.selected-playlist {
   background-color: #03a9f4;
   color: #fff !important; }
   .selected-playlist .v-list__tile__title {
@@ -791,4 +869,13 @@ exports.default = _default;
 
 .offline {
   color: #c14444; }
+
+.v-textarea textarea {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px; }
+
+.logDialog textarea {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  height: 70vh; }
 </style>

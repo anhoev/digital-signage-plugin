@@ -25,11 +25,11 @@ module.exports.get = async function (req, res) {
 module.exports.getAppCenterUpdate = async function (req, res) {
   try {
     const SystemConfig = cms.getModel('SystemConfig');
-    const { SecretKey, DistributionGroup } = await SystemConfig.findOne({});
+    const { SecretKey, DistributionGroup, ApiToken } = await SystemConfig.findOne({});
     req.pipe(request({
       url: `https://api.appcenter.ms/v0.1/public/sdk/apps/${SecretKey}/distribution_groups/${DistributionGroup}/releases/latest`,
       headers: {
-        'X-API-Token': result.ApiToken
+        'X-API-Token': ApiToken
       }
     })).pipe(res);
   } catch (e) {

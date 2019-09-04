@@ -1,5 +1,5 @@
 <template>
-  <v-layout row style="height: 100%">
+  <v-layout row style="height: calc(100vh - 48px);">
     <v-flex shrink
             style="border-right: 1px solid #ddd; max-width: 300px; max-height: calc(100vh - 50px); overflow: auto; background: #fff">
       <v-list dense two-line avatar>
@@ -20,7 +20,9 @@
             <v-list-tile-content>
               <v-list-tile-title v-if="item.isRegistered">{{item.name}}</v-list-tile-title>
               <v-list-tile-title v-else>Unregistered Device</v-list-tile-title>
-              <v-list-tile-sub-title>{{item.resolution}} <span v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
+              <v-list-tile-sub-title>{{item.resolution}} <span
+                  v-if="!item.isRegistered">(Code: {{item.deviceCode}})</span>
+                <span v-else>(ver. {{item.appVersionCode}})</span>
               </v-list-tile-sub-title>
             </v-list-tile-content>
             <v-list-tile-action>
@@ -113,7 +115,7 @@
                         </v-btn>
                       </v-list-tile-action>
                     </v-list-tile>
-                    <v-divider v-if="index!==files.length-1" />
+                    <v-divider v-if="index!==files.length-1"/>
                   </template>
                 </v-list>
               </v-card>
@@ -237,6 +239,9 @@
                          :style="{width: ((freeStorage.total-freeStorage.free)/freeStorage.total*100) + '%'}"></div>
                   </div>
                 </div>
+                <v-btn @click="deleteDeviceData" color="red" class="white--text">
+                  Delete all device data
+                </v-btn>
                 <div class="pa-2"
                      :class="needUpdate?'orange--text':'green--text'">
                   App version on device: {{selectedDevices.appVersionCode}}
@@ -247,31 +252,106 @@
                 <div class="pa-2" v-if="currentVersion">
                   Current version: {{currentVersion}}
                 </div>
-
-                <v-btn @click="deleteDeviceData">
-                  Delete all device data
-                </v-btn>
+                <v-layout row wrap>
+                  <div class="pa-2" style="margin: auto 0; flex-basis: 300px">
+                    Date: {{selectedDevices.currentDate || 'not fetched'}}
+                  </div>
+                  <v-layout>
+                    <v-btn @click="getDeviceDate" flat color="primary">
+                      Get current date
+                    </v-btn>
+                    <v-btn @click="setDeviceTimeZone" flat color="primary" :disabled="disabledSetTimezoneBtn">
+                      Set time zone
+                    </v-btn>
+                  </v-layout>
+                </v-layout>
+                <v-layout row wrap>
+                  <div class="pa-2" style="margin: auto 0; flex-basis: 300px">
+                    Location Services: {{selectedDevices.locationServicesProviders || 'not fetched'}}
+                  </div>
+                  <v-layout>
+                    <v-btn @click="getLocationServicesStatus" flat color="primary">
+                      Get status
+                    </v-btn>
+                    <v-btn @click="setLocationService" flat color="primary" :disabled="disabledSetLocationSvcBtn">
+                      Enable location services
+                    </v-btn>
+                  </v-layout>
+                </v-layout>
                 <map-maker v-if="selectedDevices.coordinates"
                            :lat="selectedDevices.coordinates.latitude"
                            :lng="selectedDevices.coordinates.longitude"></map-maker>
               </v-card>
             </v-tab-item>
             <v-tab-item>
-              <v-card>
-                <v-btn @click="getLogList" v-show="!logs">Get log list</v-btn>
-                <v-btn @click="getLog" v-show="selectedLog">Get Log</v-btn>
-                <v-btn @click="clearLog">Clear Log</v-btn>
-                <v-btn v-if="downloadLink" :href="downloadLink" download="log.txt">Download</v-btn>
-                <v-select v-model="selectedLog" :items="logs" label="Select log" v-show="logs" class="pa-2" hide-details></v-select>
-                <v-textarea v-model="log" autogrow ref="log" style="font-family: 'Courier New', Courier, monospace"></v-textarea>
-                <v-btn @click="copyLog">Copy</v-btn>
-              </v-card>
+              <v-expansion-panel expand v-model="panel">
+                <v-expansion-panel-content :value="true">
+                  <template v-slot:header>
+                    <div class="headline">App Logs</div>
+                  </template>
+                  <v-card>
+                    <v-card-title>
+                      <v-btn @click="getLogList" color="primary">list logs</v-btn>
+                      <v-btn @click="clearLog">Clear Logs</v-btn>
+                      <v-select v-model="selectedLog" :items="logs" label="Select log" class="pa-2"
+                                hide-details></v-select>
+                    </v-card-title>
+                    <v-divider></v-divider>
+                    <v-textarea v-model="selectedLogContent" ref="log" :loading="loadingLog" label="Log"
+                                box hide-details clearable
+                    >
+                      <template v-slot:append>
+                        <v-icon style="cursor: pointer;" @click="showLogAsDialog(selectedLogContent)">launch</v-icon>
+                      </template>
+                    </v-textarea>
+                    <v-card-actions>
+                      <v-btn @click="sendGetLogEvent" v-if="selectedLog" color="primary" flat>Get Log</v-btn>
+                      <v-spacer></v-spacer>
+                      <v-btn @click="copyLog" flat>Copy</v-btn>
+                      <v-btn flat color="primary" v-if="downloadLink" :href="downloadLink" download="log.txt">Download
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-expansion-panel-content>
+                <v-expansion-panel-content>
+                  <template v-slot:header>
+                    <div class="headline">Start Logs</div>
+                  </template>
+                  <v-card>
+                    <v-textarea v-model="startLog" box hide-details label="Log">
+                      <template v-slot:append>
+                        <v-icon style="cursor: pointer;" @click="showLogAsDialog(startLog)">launch</v-icon>
+                      </template>
+                    </v-textarea>
+                    <v-card-actions>
+                      <v-btn @click="getStartLog" color="primary" flat>get start logs</v-btn>
+                      <v-btn @click="clearStartLog" flat>clear start logs</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-expansion-panel-content>
+                <v-expansion-panel-content>
+                  <template v-slot:header>
+                    <div class="headline">Memory Logs</div>
+                  </template>
+                  <v-card>
+                    <v-textarea v-model="memoryLog" box hide-details label="Log">
+                      <template v-slot:append>
+                        <v-icon style="cursor: pointer;" @click="showLogAsDialog(memoryLog)">launch</v-icon>
+                      </template>
+                    </v-textarea>
+                    <v-card-actions>
+                      <v-btn @click="getMemoryLog" color="primary" flat>get memory logs</v-btn>
+                      <v-btn @click="clearMemoryLog" flat>clear memory logs</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
             </v-tab-item>
           </v-tabs-items>
         </v-flex>
         <v-flex v-else-if="selectedDevices && !selectedDevices.isRegistered">
           <div class="pa-5">
-            Device is not register
+            Device is not registered
             <v-btn @click="showModalRegister = true" depressed>Register</v-btn>
             <div class="ma-5"></div>
             <div style="max-width: 700px" v-if="selectedDevices.coordinates">
@@ -282,6 +362,20 @@
         </v-flex>
       </v-layout>
     </v-flex>
+    <v-dialog v-model="showLogDialog" width="1000">
+      <v-card>
+        <v-card-text>
+          <v-textarea box hide-details label="Log" v-model="logDialogText" class="logDialog" ref="logDialog"
+          ></v-textarea>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn flat color="primary" @click="copyDialogLog">copy</v-btn>
+          <v-btn flat color="primary" @click="downloadDialogLog">download</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn flat color="primary" @click="showLogDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="showModalRegister" width="700" v-if="selectedDevices">
       <v-card pa-3>
         <v-card-title>Device is not registered, please register</v-card-title>
@@ -322,10 +416,17 @@
       freeStorage: {},
       showModalRegister: false,
       currentVersion: '',
-      logs: null,
+      logs: [],
+      startLog: '',
+      memoryLog: '',
       selectedLog: '',
-      log: '',
-      downloadLink: ''
+      selectedLogContent: '',
+      loadingLog: false,
+      downloadLink: '',
+      panel: [true, false, false],
+      dateHint: '',
+      showLogDialog: false,
+      logDialogText: ''
     }),
     props: {
       source: String
@@ -352,74 +453,136 @@
       },
       needUpdate() {
         return Number(this.selectedDevices.appVersionCode) < Number(this.currentVersion);
+      },
+      disabledSetTimezoneBtn() {
+        return !this.selectedDevices.currentDate || this.selectedDevices.currentDate.includes('CEST')
+      },
+      disabledSetLocationSvcBtn() {
+        return !this.selectedDevices.locationServicesProviders || this.selectedDevices.locationServicesProviders === 'High accuracy'
       }
     },
     methods: {
+      showLogAsDialog(text) {
+        this.logDialogText = text;
+        this.showLogDialog = true;
+      },
+      copyDialogLog() {
+        console.log(this.$refs.logDialog);
+        this.$refs.logDialog.$refs.input.select();
+        document.execCommand('copy');
+      },
+      downloadDialogLog() {
+        const blob = new Blob([this.logDialogText], {type: 'text/plain'});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'log.txt';
+        a.click();
+      },
       copyLog() {
         console.log(this.$refs.log);
         this.$refs.log.$refs.input.select();
         document.execCommand('copy');
       },
-      clearLog() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_CLEAR_LOG',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
-          this.log = '';
+      async clearLog() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_CLEAR_LOG',
+            deviceId: this.selectedDevices._id
+          });
+          this.selectedLogContent = '';
           this.downloadLink = '';
-        }).catch(err => {
-          console.log(err);
-        });
+        } catch (e) {
+          console.error(e);
+        }
       },
-      updateApp() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_UPDATE',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
-          if (res.data && res.data.data) {
-            alert(res.data.data);
+      async updateApp() {
+        try {
+          const {data} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_UPDATE',
+            deviceId: this.selectedDevices._id
+          });
+          if (data && data.data) {
+            alert(data.data);
           } else {
             alert('check for update success, device is downloading new version');
           }
-        }).catch(err => {
-          console.log(err);
-        });
+        } catch (e) {
+          console.error(e);
+        }
       },
-      getLogList() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
+      async getLogList() {
+        const {data: {data: logList}} = await axios.post(cms.baseUrl + 'digital/p2p', {
           event: 'APP_LISTENER_GET_LOG_LIST',
           deviceId: this.selectedDevices._id
-        }).then(res => {
-          console.log(res);
-          this.logs = res.data.data;
         });
+        this.logs = logList;
       },
-      getLog() {
-        this.log = '';
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_LISTENER_GET_LOG',
+      async sendGetLogEvent() {
+        try {
+          this.selectedLogContent = '';
+          this.downloadLink = '';
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_GET_LOG',
+            deviceId: this.selectedDevices._id,
+            data: this.selectedLog
+          });
+        } catch (e) {
+          this.loadingLog = false;
+          console.error(e)
+        }
+      },
+      async getStartLog() {
+        this.startLog = '';
+        await axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_PUSH_START_LOG',
           deviceId: this.selectedDevices._id,
-          data: this.selectedLog
-        }).then(value => {
-          console.log(value)
-        }).catch(err => {
-          console.log(err)
         })
       },
-      deleteDeviceData() {
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_DELETE_DEVICE_DATA',
-          deviceId: this.selectedDevices._id
-        }).then(res => {
+      async clearStartLog() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_CLEAR_START_LOG',
+            deviceId: this.selectedDevices._id
+          });
+          this.startLog = '';
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      async getMemoryLog() {
+        this.memoryLog = '';
+        await axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_LISTENER_PUSH_MEMORY_LOG',
+          deviceId: this.selectedDevices._id,
+        })
+      },
+      async clearMemoryLog() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_CLEAR_MEMORY_LOG',
+            deviceId: this.selectedDevices._id
+          });
+          this.memoryLog = '';
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      async deleteDeviceData() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_DELETE_DEVICE_DATA',
+            deviceId: this.selectedDevices._id
+          });
           this.selectItem(this.devices.find(i => i._id === this.selectedDevices._id));
-        }).catch(err => {
-          console.log(err);
-        });
+        } catch (e) {
+          console.error(e);
+        }
       },
       toMegabytes(n) {
         return Math.floor(n / 1048576);
       },
-      onSaveDevice() {
+      async onSaveDevice() {
         const data = {
           name: this.selectedDevices.name,
           os: this.selectedDevices.os,
@@ -428,19 +591,17 @@
           location: this.selectedDevices.location,
           isRegistered: true
         };
-        cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data)
-          .then(res => {
-            this.getDevices();
-            this.showModalRegister = false;
-            axios.post(cms.baseUrl + 'digital/p2p', {
-              event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
-              deviceId: this.selectedDevices._id
-            }).then(res => {
-              console.log(res);
-            }).catch(err => {
-              console.log(err);
-            });
+        try {
+          await cms.getModel('Device').findByIdAndUpdate(this.selectedDevices._id, data);
+          this.getDevices();
+          this.showModalRegister = false;
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_CHANGE_DEVICE_REGISTERED',
+            deviceId: this.selectedDevices._id
           });
+        } catch (e) {
+          console.error(e)
+        }
       },
       isOnline(device) {
         return this.onlineDevices.indexOf(device._id) > -1;
@@ -478,13 +639,26 @@
         });
         this.$options.socket.on('WEB_EVENT_LOG_SEND', ({status, data}) => {
           if (status === 'finished') {
-            var blob = new Blob([this.log], { type: 'text/plain' });
-            var url = window.URL.createObjectURL(blob);
-            this.downloadLink = url;
+            this.loadingLog = false;
+            const blob = new Blob([this.selectedLogContent], {type: 'text/plain'});
+            this.downloadLink = window.URL.createObjectURL(blob);
+          } else if (status === 'sending') {
+            this.loadingLog = true;
+            this.selectedLogContent += data;
           } else {
-            this.log += data;
+            this.loadingLog = false;
           }
-        })
+        });
+        this.$options.socket.on('WEB_EVENT_PUSH_START_LOG', ({status, data}) => {
+          if (status !== 'finished') {
+            this.startLog += data;
+          }
+        });
+        this.$options.socket.on('WEB_EVENT_PUSH_MEMORY_LOG', ({status, data}) => {
+          if (status !== 'finished') {
+            this.memoryLog += data;
+          }
+        });
       },
       async getDevices() {
         const Model = cms.getModel('Device');
@@ -497,6 +671,11 @@
         this.files = [];
         this.connecting = true;
         this.error = null;
+        this.logs = [];
+        this.startLog = '';
+        this.selectedLog = '';
+        this.selectedLogContent = '';
+        this.downloadLink = '';
         const Model = cms.getModel('Device');
         const res = await Model.findById(item._id);
         this.selectedDevices = res;
@@ -505,12 +684,10 @@
         //   this.showModalRegister = true;
         // }
         this.$options.socket.emit('WEB_LISTENER_VIEW_DEVICE', res._id);
-        this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', res._id, (err, files) => {
+        this.$options.socket.emit('WEB_LISTENER_GET_LIST_FILE', res._id, async (err, files) => {
           if (err) {
             this.error = err;
-            cms.getModel('ConnectionHistory').findOne({ device: this.selectedDevices._id }).sort('-date').then(res => {
-              this.lastOnline = res;
-            });
+            this.lastOnline = await cms.getModel('ConnectionHistory').findOne({device: this.selectedDevices._id}).sort('-date')
           } else {
             this.files = files;
           }
@@ -522,24 +699,20 @@
             this.playlist = playlist;
           }
         });
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_PUSH_SCHEDULE',
-          deviceId: item._id
-        }).then(res => {
-          console.log(res);
-          this.schedule = res.data.data;
-        }).catch(err => {
-          console.log(err);
-        });
-        axios.post(cms.baseUrl + 'digital/p2p', {
-          event: 'APP_ACTION_PUSH_DEVICE_STORAGE',
-          deviceId: item._id
-        }).then(res => {
-          console.log(res);
-          this.freeStorage = res.data.data;
-        }).catch(err => {
-          console.log(err);
-        });
+        try {
+          const {data: {data: schedule}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_PUSH_SCHEDULE',
+            deviceId: item._id
+          });
+          this.schedule = schedule;
+          const {data: {data: freeStorage}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_PUSH_DEVICE_STORAGE',
+            deviceId: item._id
+          });
+          this.freeStorage = freeStorage;
+        } catch (e) {
+          console.error(e);
+        }
       },
       deleteFile(item) {
         this.$options.socket.emit('WEB_LISTENER_DELETE_FILE', this.selectedDevices._id, item, (err, files) => {
@@ -561,16 +734,17 @@
           }
         });
       },
-      deleteSchedule(item) {
-        axios.post(`${cms.baseUrl}digital/p2p`, {
-          event: 'APP_ACTION_DELETE_SCHEDULE',
-          deviceId: this.selectedDevices._id,
-          data: item._id
-        }).then(res => {
-          this.schedule = res.data.data;
-        }).catch(err => {
-          console.log(err);
-        });
+      async deleteSchedule(item) {
+        try {
+          const {data: {data: schedule}} = await axios.post(`${cms.baseUrl}digital/p2p`, {
+            event: 'APP_ACTION_DELETE_SCHEDULE',
+            deviceId: this.selectedDevices._id,
+            data: item._id
+          });
+          this.schedule = this.schedule.filter(i => i._id !== item._id);
+        } catch (e) {
+          console.error(e);
+        }
       },
       activePlaylist(item) {
         this.$options.socket.emit('WEB_LISTENER_SET_ACTIVE_PLAYLIST', this.selectedDevices._id, item.id, (err, playlist) => {
@@ -584,23 +758,60 @@
       async getCurrentVersion() {
         const SystemConfig = cms.getModel('SystemConfig');
         const res = await SystemConfig.findOne();
-        const MY_APP_DESTRIBUTION_GROUP = res.DistributionGroup;
+        const MY_APP_DISTRIBUTION_GROUP = res.DistributionGroup;
         const MY_APP_SECRET_KEY = res.SecretKey;
         const MY_API_TOKEN = res.ApiToken;
-        if (MY_APP_DESTRIBUTION_GROUP && MY_APP_SECRET_KEY && MY_API_TOKEN) {
+        if (MY_APP_DISTRIBUTION_GROUP && MY_APP_SECRET_KEY && MY_API_TOKEN) {
           try {
-            const app = await axios.get(`https://api.appcenter.ms/v0.1/public/sdk/apps/${MY_APP_SECRET_KEY}/distribution_groups/${MY_APP_DESTRIBUTION_GROUP}/releases/latest`,
-              {
-                headers: {
-                  'X-API-Token': MY_API_TOKEN
-                }
-              });
+            const app = await axios.get(`https://api.appcenter.ms/v0.1/public/sdk/apps/${MY_APP_SECRET_KEY}/distribution_groups/${MY_APP_DISTRIBUTION_GROUP}/releases/latest`,
+                {
+                  headers: {
+                    'X-API-Token': MY_API_TOKEN
+                  }
+                });
             this.currentVersion = app.data.version;
           } catch (e) {
             console.log(e);
           }
-
         }
+      },
+      async getDeviceDate() {
+        try {
+          const {data: {data: deviceDate}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_LISTENER_GET_DEVICE_DATE',
+            deviceId: this.selectedDevices._id
+          });
+          this.$set(this.selectedDevices, 'currentDate', deviceDate);
+        } catch (e) {
+          console.error(e)
+        }
+      },
+      async setDeviceTimeZone() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_SET_TIME_ZONE',
+            deviceId: this.selectedDevices._id
+          })
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      async setLocationService() {
+        try {
+          await axios.post(cms.baseUrl + 'digital/p2p', {
+            event: 'APP_ACTION_SET_LOCATION_SERVICES',
+            deviceId: this.selectedDevices._id
+          })
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      async getLocationServicesStatus() {
+        const {data: {data: locationServiceProviders}} = await axios.post(cms.baseUrl + 'digital/p2p', {
+          event: 'APP_ACTION_GET_LOCATION_SERVICES_STATUS',
+          deviceId: this.selectedDevices._id
+        });
+        this.$set(this.selectedDevices, 'locationServicesProviders', locationServiceProviders);
       }
     },
     mounted() {
@@ -614,7 +825,7 @@
   };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
   .selected-playlist {
     background-color: #03a9f4;
     color: #fff !important;
@@ -634,6 +845,17 @@
 
   .offline {
     color: #c14444
+  }
+
+  .v-textarea textarea {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 12px;
+  }
+
+  .logDialog textarea {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 12px;
+    height: 70vh;
   }
 </style>
 

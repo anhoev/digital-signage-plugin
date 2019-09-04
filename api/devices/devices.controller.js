@@ -1,6 +1,7 @@
 const deviceService = require('./devices.service');
 const Content = cms.getModel('Content');
 const Joi = require('joi');
+const _ = require('lodash');
 
 module.exports.getList = function (req, res) {
   deviceService.getList()
@@ -26,6 +27,7 @@ const DeviceSchema = Joi.object().keys({
   appVersionCode: [Joi.string(), Joi.number()]
 });
 
+//legacy API
 module.exports.register = function (req, res) {
 
   const info = {};
@@ -49,6 +51,26 @@ module.exports.register = function (req, res) {
     .catch(err => {
       res.status(400).json({ err });
     });
+};
+
+module.exports.fetchDeviceInfo = async function (req, res) {
+  try {
+    const token = req.body['token'];
+    const existingDevice = await deviceService.fetchDeviceInfo(token);
+    res.status(200).json(existingDevice);
+  } catch (e) {
+    res.status(400).json({e})
+  }
+};
+
+module.exports.pushDeviceInfo = async function ({body: rawDeviceInfo}, res) {
+  const deviceInfo = _.assign(_.omit(rawDeviceInfo, ['osVersion']), {'os-version': rawDeviceInfo.osVersion});
+  const validate = DeviceSchema.validate(deviceInfo);
+  if (validate.error) {
+    res.status(500).send(validate.error);
+  }
+  await deviceService.pushDeviceInfo(deviceInfo);
+  res.send();
 };
 
 module.exports.pushMessage = function (req, res) {

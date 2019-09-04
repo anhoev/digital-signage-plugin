@@ -33,6 +33,7 @@ module.exports.getAppCenterUpdate = async function (req, res) {
       }
     })).pipe(res);
   } catch (e) {
+    console.log(e);
     res.status(400).json({ err: e });
   }
 };

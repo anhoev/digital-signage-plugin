@@ -44,7 +44,7 @@
         </v-flex>
         <v-card-title v-if="connecting && !error">Connecting to device...
         </v-card-title>
-        <v-flex md12 v-else-if="!error && selectedDevices && selectedDevices.isRegistered">
+        <v-flex md12 v-else-if="selectedDevices && selectedDevices.isRegistered">
           <v-tabs
               v-model="active"
               color="cyan"

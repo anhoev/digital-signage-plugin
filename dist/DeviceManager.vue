@@ -33,7 +33,7 @@
         </v-flex>
         <v-card-title v-if="connecting &amp;&amp; !error">Connecting to device...
         </v-card-title>
-        <v-flex md12="" v-else-if="!error &amp;&amp; selectedDevices &amp;&amp; selectedDevices.isRegistered">
+        <v-flex md12="" v-else-if="selectedDevices &amp;&amp; selectedDevices.isRegistered">
           <v-tabs v-model="active" color="cyan" dark="" slider-color="yellow">
             <v-tab ripple="">
               File Manager

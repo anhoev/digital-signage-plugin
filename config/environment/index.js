@@ -3,6 +3,9 @@ const path = require('path');
 
 const all = {};
 
+if (!global.cms.storage)
+  global.cms.storage = 'storage'
+
 module.exports = _.merge(
   all,
   {

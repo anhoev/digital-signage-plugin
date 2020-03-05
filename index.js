@@ -1,3 +1,4 @@
+const config = require('./config/environment/index');
 const videoApi = require('./api/video');
 const configApi = require('./api/config');
 const deviceApi = require('./api/devices');
@@ -7,7 +8,6 @@ const fileApi = require('./api/file-manager');
 const contentHistoryApi = require('./api/content-history');
 const fileSocket = require('./api/socket/filemanager.socket');
 const path = require('path');
-const config = require('./config/environment/index');
 const fs = require('fs');
 
 module.exports = cms => {

@@ -211,7 +211,7 @@
   };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
     .selected-playlist {
         background-color: #03a9f4;
         color: #fff;

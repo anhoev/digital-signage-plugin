@@ -1,45 +1,41 @@
 <template>
     <v-card>
+        <!-- Create playlist dialog -->
         <v-dialog
                 lazy
                 persistant
                 v-model="showDialogCreatePlaylist"
-                width="1200"
-        >
+                width="1200">
             <v-card>
                 <v-card-text>
-                    <span>Create playlist</span>
-
+                    <span style="font-size: 1.6em">Create playlist</span>
                     <v-text-field
                             label="Playlist Name *"
                             ref="inputRef"
-                            v-model="playlistName"
-                    >
+                            v-model="playlistName">
                     </v-text-field>
                 </v-card-text>
-
                 <v-card-text>
                     <div class="v-table__overflow">
                         <v-list>
                             <table class="v-datatable v-table theme--light">
                                 <tr v-for="item in playlist">
                                     <td style="width: 100px" class="text-xs-center">
-                                        <thumbnail :item="item.media"></thumbnail>
+                                        <thumbnail :item="item.media"/>
                                     </td>
-                                    <td style="max-width: 400px">
+                                    <td>
                                         <v-list-tile-title>{{item.media.name}}</v-list-tile-title>
                                         <v-list-tile-sub-title>path: {{item.media.path}}</v-list-tile-sub-title>
                                         <v-list-tile-sub-title>{{item.media.resolution}}, {{item.media.duration}}s
                                             ({{item.media.type}})
                                         </v-list-tile-sub-title>
                                     </td>
-                                    <td>
-                                        <v-text-field v-model="item.duration" label="Duration"></v-text-field>
+                                    <td style="width: 100px; max-width: 100px; min-width: 100px; padding-left: 20px;">
+                                        <v-text-field v-model="item.duration" label="Duration"/>
                                     </td>
-                                    <td style="width: 300px">
-                                        <v-flex px2 style="height: 30px">
-                                            <v-select :items="effectOptions" v-model="item.effect" label="Effect"
-                                            ></v-select>
+                                    <td style="width: 300px; padding-left: 20px">
+                                        <v-flex px2>
+                                            <v-select :items="effectOptions" v-model="item.effect" label="Effect"/>
                                         </v-flex>
                                     </td>
                                 </tr>
@@ -67,11 +63,12 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- Playlist items -->
         <v-toolbar color="light-blue" dark>
             <v-toolbar-title>SelectedFile</v-toolbar-title>
             <v-spacer></v-spacer>
         </v-toolbar>
-
         <v-list two-line subheader>
             <template v-for="(item, index) in selected"
             >
@@ -106,6 +103,8 @@
                 No selected items
             </v-flex>
         </v-list>
+
+        <!-- Create playlist button -->
         <v-card-actions>
             <!--            <v-btn @click="$emit('open-dialog')" :disabled="selected.length===0" flat color="orange">-->
             <!--                PUSH TO DEVICE-->
@@ -168,6 +167,8 @@
   };
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
+    .v-table__overflow {
+        overflow-x: hidden;
+    }
 </style>
